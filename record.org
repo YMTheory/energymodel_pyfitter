@@ -1,0 +1,5 @@
+* Python Advanced in Fitting
+
+** Numba acceleration:
+Numba: nopython mode, just-in-time compilation. （普通python程序编译时候需要每一次将程序语言解释为机器语言，因此相对缓慢）;
+
