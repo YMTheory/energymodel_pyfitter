@@ -120,6 +120,9 @@ def set_prm_value_ingroup(keys, vals):
         set_prm_value(k, v)
 
 
+def set_fitpar_value_indict(d):
+    for k, v in d.items():
+        set_fitpar_value(k, v)
 
 def _print():
     for item in _global_fitpar_dict.items():

@@ -2,7 +2,7 @@ import numpy as np
 import parameters_ym as gol
 import logging
 import uproot as up
-import numba as nb
+#import numba as nb
 
 class electronResponse(object):
 
