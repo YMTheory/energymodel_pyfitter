@@ -1,0 +1,73 @@
+/Users/yumiao/.virtualenvs/my_env/lib/python3.9/site-packages/scipy/stats/_distn_infrastructure.py:2085: RuntimeWarning: divide by zero encountered in divide
+  x = np.asarray((x - loc)/scale, dtype=dtyp)
+/Users/yumiao/.virtualenvs/my_env/lib/python3.9/site-packages/scipy/stats/_distn_infrastructure.py:2085: RuntimeWarning: divide by zero encountered in divide
+  x = np.asarray((x - loc)/scale, dtype=dtyp)
+/Users/yumiao/.virtualenvs/my_env/lib/python3.9/site-packages/scipy/stats/_distn_infrastructure.py:2085: RuntimeWarning: divide by zero encountered in divide
+  x = np.asarray((x - loc)/scale, dtype=dtyp)
+/Users/yumiao/.virtualenvs/my_env/lib/python3.9/site-packages/scipy/stats/_distn_infrastructure.py:2085: RuntimeWarning: divide by zero encountered in divide
+  x = np.asarray((x - loc)/scale, dtype=dtyp)
+/Users/yumiao/.virtualenvs/my_env/lib/python3.9/site-packages/scipy/stats/_distn_infrastructure.py:2085: RuntimeWarning: divide by zero encountered in divide
+  x = np.asarray((x - loc)/scale, dtype=dtyp)
+/Users/yumiao/.virtualenvs/my_env/lib/python3.9/site-packages/scipy/stats/_distn_infrastructure.py:2085: RuntimeWarning: divide by zero encountered in divide
+  x = np.asarray((x - loc)/scale, dtype=dtyp)
+/Users/yumiao/.virtualenvs/my_env/lib/python3.9/site-packages/scipy/stats/_distn_infrastructure.py:2085: RuntimeWarning: divide by zero encountered in divide
+  x = np.asarray((x - loc)/scale, dtype=dtyp)
+/Users/yumiao/.virtualenvs/my_env/lib/python3.9/site-packages/scipy/stats/_distn_infrastructure.py:2085: RuntimeWarning: divide by zero encountered in divide
+  x = np.asarray((x - loc)/scale, dtype=dtyp)
+/Users/yumiao/.virtualenvs/my_env/lib/python3.9/site-packages/scipy/stats/_distn_infrastructure.py:2085: RuntimeWarning: divide by zero encountered in divide
+  x = np.asarray((x - loc)/scale, dtype=dtyp)
+>>> Load Primary e+- Collections for Cs137
+>>> Load MC data for Cs137
+>>> Load Primary e+- Collections for Mn54
+>>> Load MC data for Mn54
+>>> Load Primary e+- Collections for Ge68
+>>> Load MC data for Ge68
+>>> Load Primary e+- Collections for K40
+>>> Load MC data for K40
+>>> Load Primary e+- Collections for nH
+>>> Load MC data for nH
+>>> Load Primary e+- Collections for Co60
+>>> Load MC data for Co60
+>>> Load Primary e+- Collections for AmBe
+>>> Load MC data for AmBe
+>>> Load Primary e+- Collections for nC12
+>>> Load MC data for nC12
+>>> Load Primary e+- Collections for AmC
+>>> Load MC data for AmC
+------ Initialzed electron response -----
+__predicted mean npe 927.8600003269161
+__predicted npe sigma 30.591755245146086
+__data: mean 862.76668, sigma 31.774253126983172
+__calc: mean 0, sigma 0
+__predicted mean npe 1180.952186495402
+__predicted npe sigma 34.607784365927
+__data: mean 1105.06344, sigma 36.76650126632122
+__calc: mean 0, sigma 0
+__predicted mean npe 1453.7012888307454
+__predicted npe sigma 37.75254998533983
+__data: mean 1308.75746, sigma 38.46840618414546
+__calc: mean 0, sigma 0
+__predicted mean npe 2104.4184751000034
+__predicted npe sigma 47.31834577476892
+__data: mean 2001.42328, sigma 54.28270253074731
+__calc: mean 0, sigma 0
+__predicted mean npe 3232.1626963892704
+__predicted npe sigma 63.42923161482727
+__data: mean 3111.13108, sigma 71.7728069538429
+__calc: mean 0, sigma 0
+__predicted mean npe 3652.140895317599
+__predicted npe sigma 61.3058732669299
+__data: mean 3402.66306, sigma 69.12479708061645
+__calc: mean 0, sigma 0
+__predicted mean npe 6496.9246318930145
+__predicted npe sigma 101.64655467320965
+__data: mean 6357.31842, sigma 109.3213285169166
+__calc: mean 0, sigma 0
+__predicted mean npe 7254.143875063448
+__predicted npe sigma 106.0281240670862
+__data: mean 7064.18514, sigma 131.83233208579904
+__calc: mean 0, sigma 0
+__predicted mean npe 9008.365200545382
+__predicted npe sigma 124.1841369851538
+__data: mean 8866.5739, sigma 128.58921688380408
+__calc: mean 0, sigma 0

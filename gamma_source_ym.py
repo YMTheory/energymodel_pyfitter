@@ -49,8 +49,6 @@ class gamma(object):
     def get_pred_sigma(self):
         return self.pred_sigma
 
-
-
     #@timebudget
     def _calc(self):
         """
@@ -65,7 +63,7 @@ class gamma(object):
                 E_per_event) + np.count_nonzero(self.posi, axis=1) * float(
                     gol.get_fitpar_value("npeGe68"))
         pred_npe_mean = np.average(totnpe_per_event)
-        #print(f"__predicted mean npe {pred_npe_mean}")
+        # print(f"__predicted mean npe {pred_npe_mean}")
 
         sub_npe_sigma = electronResponse.get_Nsigma(
             self.elec)**2 + electronResponse.get_Nsigma(self.posi)**2
@@ -74,8 +72,9 @@ class gamma(object):
         sigma2_ave = np.average(sigma_per_event)
         sigma2_nonl = np.average((totnpe_per_event - pred_npe_mean)**2)
         pred_npe_sigma = np.sqrt(sigma2_ave + sigma2_nonl)
-        #print(f"__predicted npe sigma {pred_npe_sigma}")
+        # print(f"__predicted npe sigma {pred_npe_sigma}")
 
+        self.pred_mu, self.pred_sigma = pred_npe_mean, pred_npe_sigma
         return pred_npe_mean, pred_npe_sigma
 
     def _pdf(self, x, kB, Ysct, p0, p1, p2, E0, a, b, n):
@@ -93,24 +92,24 @@ class gamma(object):
 
         #calculate mu, sigma
         mu, sigma = self._calc()
-        self.pred_mu, self.pred_sigma = mu, sigma
         #print(f"{self.name}: __predictied mu {mu}, sigma {sigma}")
         return norm.pdf(x, loc=mu, scale=sigma)
 
-
     def _print(self):
-        print(f"__data: mean {self.data_mu}, sigma {self.data_sigma}")
-        print(f"__calc: mean {self.pred_mu}, sigma {self.pred_sigma}")
+        print(
+            f"{self.name}__data: mean {self.data_mu}, sigma {self.data_sigma}")
+        print(
+            f"{self.name}__calc: mean {self.pred_mu}, sigma {self.pred_sigma}")
 
     def _plot(self):
         Y = gol.get_fitpar_value("Y")
 
         fig, ax = plt.subplots(figsize=(6, 6))
-        ax.hist(self.npe/Y, bins=100, density=True)
+        ax.hist(self.npe / Y, bins=100, density=True)
         xmin, xmax = np.min(self.npe), np.max(self.npe)
         x = np.arange(xmin, xmax, 1)
-        y = norm.pdf(x, loc=self.pred_mu, scale=self.pred_sigma)
-        ax.plot(x/Y, y, "-")
+        y = norm.pdf(x / Y, loc=self.pred_mu / Y, scale=self.pred_sigma / Y)
+        ax.plot(x / Y, y, "-")
         ax.set_xlabel(r"$E_\mathrm{vis}$ [MeV]", fontsize=14)
         ax.set_ylabel("counts", fontsize=14)
         ax.set_title(f"{self.name}, E = {self.E} MeV", fontsize=14)
