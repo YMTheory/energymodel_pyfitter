@@ -3,6 +3,8 @@ from timebudget import timebudget
 import uproot as up
 from scipy.stats import norm
 import matplotlib.pyplot as plt
+import numba as nb
+
 
 from electronResponse_ym import electronResponse
 import parameters_ym as gol
@@ -50,18 +52,19 @@ class gamma(object):
         return self.pred_sigma
 
     #@timebudget
+    @profile
     def _calc(self):
         """
         predict mean and sigma of NPE dist.
+        outputs: prediction values of NPE mean and sigma
         """
-        # debugger here:
-        sub_E = self.elec + self.posi
-        E_per_event = np.sum(sub_E, axis=1)
-
-        totnpe_per_event = electronResponse.get_Nsct(
-            E_per_event) + electronResponse.get_Ncer(
-                E_per_event) + np.count_nonzero(self.posi, axis=1) * float(
-                    gol.get_fitpar_value("npeGe68"))
+        tmp_totnpe_per_event = electronResponse.get_Nsct(
+            self.elec) + electronResponse.get_Ncer(
+                self.elec) + electronResponse.get_Nsct(
+                    self.posi) + electronResponse.get_Ncer(self.posi)
+        totnpe_per_event = np.sum(
+            tmp_totnpe_per_event, axis=1) + np.count_nonzero(
+                self.posi, axis=1) * float(gol.get_fitpar_value("npeGe68"))
         pred_npe_mean = np.average(totnpe_per_event)
         # print(f"__predicted mean npe {pred_npe_mean}")
 
@@ -75,9 +78,11 @@ class gamma(object):
         # print(f"__predicted npe sigma {pred_npe_sigma}")
 
         self.pred_mu, self.pred_sigma = pred_npe_mean, pred_npe_sigma
+        print(f"{self.name}: __pred_mu = {self.pred_mu}, __pred_sigam = {self.pred_sigma}")
         return pred_npe_mean, pred_npe_sigma
 
     def _pdf(self, x, kB, Ysct, p0, p1, p2, E0, a, b, n):
+        """ Gaussian PDF for NPE distribution """
         gol.set_fitpar_value("kB", kB)
         gol.set_fitpar_value("Ysct", Ysct)
         gol.set_fitpar_value("p0", p0)
@@ -88,20 +93,19 @@ class gamma(object):
         gol.set_fitpar_value("b", b)
         gol.set_fitpar_value("n", n)
 
-        #gol._print()
-
         #calculate mu, sigma
         mu, sigma = self._calc()
-        #print(f"{self.name}: __predictied mu {mu}, sigma {sigma}")
         return norm.pdf(x, loc=mu, scale=sigma)
 
     def _print(self):
+        """ Log output of NPE info """
         print(
             f"{self.name}__data: mean {self.data_mu}, sigma {self.data_sigma}")
         print(
             f"{self.name}__calc: mean {self.pred_mu}, sigma {self.pred_sigma}")
 
     def _plot(self):
+        """ Plot NPE distributions (data + prediction gaussian distribution) """
         Y = gol.get_fitpar_value("Y")
 
         fig, ax = plt.subplots(figsize=(6, 6))
