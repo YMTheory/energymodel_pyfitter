@@ -1,5 +1,21 @@
 * Python Advanced in Fitting
 
+** 测试代码运行时间（Line_profiler）
+ - kernprof -l script_to_profile.py
+ - @profile
+   def slow_function(a, b, c):
+       ...
+ - python -m line_profiler script_to_profile.py.lprof
+
+   [[file:./time_profiler_0821.png]]
+ - The _calc function for each source takes around 1.8s each time, and the figure displays the time profiles.
+
+
 ** Numba acceleration:
 Numba: nopython mode, just-in-time compilation. （普通python程序编译时候需要每一次将程序语言解释为机器语言，因此相对缓慢）;
+
+- Numba编译需要确定的数据类型，否则将退化回普通的解释型运行
+- 尝试对大量numpy计算的部分进行优化。
+
+
 
