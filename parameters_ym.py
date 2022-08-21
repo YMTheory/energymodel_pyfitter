@@ -24,7 +24,7 @@ def get_fitpar_value(key):
     defValue = 0
     try:
         return _global_fitpar_dict[key]
-    except:
+    except KeyError:
         return defValue
 
 def get_npe_value(key):
@@ -34,7 +34,7 @@ def get_npe_value(key):
     defValue = 0
     try:
         return _global_npe_dict[key]
-    except:
+    except KeyError:
         return defValue
 
 
@@ -46,7 +46,7 @@ def get_prm_value(key):
     defValue = 0
     try:
         return _global_prm_dict[key]
-    except:
+    except KeyError:
         return defValue
 
 
@@ -58,7 +58,7 @@ def get_kB_value(key):
     defValue = 0
     try:
         return _global_kB_dict[key]
-    except:
+    except KeyError:
         return defValue
 
 
