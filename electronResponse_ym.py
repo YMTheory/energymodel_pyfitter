@@ -2,7 +2,7 @@ import numpy as np
 import parameters_ym as gol
 import logging
 import uproot as up
-#import numba as nb
+import numba as nb
 
 
 class electronResponse(object):
@@ -31,6 +31,7 @@ class electronResponse(object):
 
     @staticmethod
     @np.vectorize
+    # @nb.vectorize
     def get_Nsct(E):
         """
         calculate scintillation photon number
@@ -59,12 +60,13 @@ class electronResponse(object):
         E0 = gol.get_fitpar_value("E0")
 
         E = E - E0
-        if E0 < 0:
+        if E < 0:
             return 0
         else:
             return p0 * E**2 / (E + p1 * np.exp(-p2 * E))
 
     @staticmethod
+    @np.vectorize
     def get_Nsigma(E):
         """
         calculate NPE sigma value
