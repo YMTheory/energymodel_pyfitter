@@ -9,6 +9,7 @@
 
    [[file:./time_profiler_0821.png]]
  - The _calc function for each source takes around 1.8s each time, and the figure displays the time profiles.
+ - 可以看见主要的时间开销还是在vectorized的三个array计算上面。
 
 
 ** Numba acceleration:
@@ -18,4 +19,17 @@ Numba: nopython mode, just-in-time compilation. （普通python程序编译时�
 - 尝试对大量numpy计算的部分进行优化。
 
 
-
+*** Try to use numba.vectorize / nb.guvectorize method...
+- 尝试将计算闪烁光子个数，切伦科夫光子个数以及光子数涨落的函数进行vectorize；
+- 闪烁光子的计算遇到问题，目前的idea是传入kB对应的nonlinearity曲线，需要用numba.guvectorize装饰器
+  - 目前还会出现报错：
+    NumbaWarning: Compilation is falling back to object mode WITHOUT looplifting enabled
+because Function "_get_Nsct" failed type inference due to: No implementation of function Function(<class 'int'>) found for signature:
+  - 如果仅仅不对get_Nsct做numba.vectorize操作，单次_calc的运算大约需要800ms+，profile的结果如下：
+  - [[file:./time_profile_0822.png]]
+  - （运行了profiler之后整体运行时间会变长，约2s）可以看出，此时程序占用时间最长的部分是get_Nsct()。
+  - 使用numba.guvectorize的函数后甚至更慢了，其并没能nopython compilation；
+  - 将Eid也作为一个参数输入后，不再有上述错误，对scalar可以运行了，但是对于array仍不行，有如下报错：
+    ufunc '_get_Nsct' not supported for the input types, and the inputs could not be safely coerced to any supported types according to the casting rule ''safe''。
+  -  原因可能是对input参数的维度定义不对，修改了guvectorize里参数的类型和维数，并在内部用了循环。NOW IT WORKS!!!
+    且运行时间变成了40ms+，提高了20倍左右； 

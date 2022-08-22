@@ -3,7 +3,7 @@ import parameters_ym as gol
 import logging
 import uproot as up
 import numba as nb
-from numba import int32, float32, float64
+from numba import int32, int64, float32, float64
 
 # @nb.vectorize([float64(float64, float64, float64, float64, float64)], target="parallel", nopython=True)
 # def _get_Ncer(E, p0, p1, p2, E0):
@@ -57,7 +57,7 @@ class electronResponse(object):
         return electronResponse.quenchNL
 
     @staticmethod
-    @nb.guvectorize(["float64, int32, float64[:], float64, float64[:]"], "(), (), (n), ()->()")
+    @nb.guvectorize(["float64[:], int64[:], float64[:], float64, float64[:]"], "(n), (n), (m), ()->(n)", target="parallel", nopython=True)
     def _get_Nsct(E, idE, nonl, Ysct, Nsct):
         """
         calculate scintillation photon number with numba
@@ -65,8 +65,9 @@ class electronResponse(object):
         output: scintillation photon number
         """
 
-        nl = nonl[idE]
-        Nsct[0] = nl * Ysct * E
+        for i in range(E.shape[0]):
+            nl = nonl[idE[i]]
+            Nsct[i] = nl * Ysct * E[i]
 
 
     @np.vectorize

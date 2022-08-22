@@ -78,16 +78,16 @@ class gamma(object):
         #             self.posi, kB, Ysct) + electronResponse.get_Ncer(
         #                 self.posi, p0, p1, p2, E0)
         ### Use numba guvectorize attribute
-
         elecID = (self.elec * 1000.).astype(int)
         posiID = (self.posi * 1000.).astype(int)
-        print(self.elec)
-        print(elecID)
+        Nsct_elec = np.zeros_like(self.elec)
+        Nsct_posi = np.zeros_like(self.posi)
         tmp_totnpe_per_event = electronResponse._get_Nsct(
-            self.elec, elecID, snonl, Ysct) + electronResponse.get_Ncer(
+            self.elec.astype(np.float64), elecID, snonl,
+            Ysct, Nsct_elec) + electronResponse.get_Ncer(
                 self.elec, p0, p1, p2, E0) + electronResponse._get_Nsct(
-                    self.posi, posiID,
-                    snonl, Ysct) + electronResponse.get_Ncer(
+                    self.posi.astype(np.float64), posiID, snonl, Ysct,
+                    Nsct_posi) + electronResponse.get_Ncer(
                         self.posi, p0, p1, p2, E0)
         totnpe_per_event = np.sum(
             tmp_totnpe_per_event, axis=1) + np.count_nonzero(
