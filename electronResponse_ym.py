@@ -57,21 +57,20 @@ class electronResponse(object):
         return electronResponse.quenchNL
 
     @staticmethod
-    @nb.guvectorize(["float64[:], float64[:], float64, float64[:]"], "(), (n), ()->()")
-    def _get_Nsct(E, nonl, Ysct, Nsct):
+    @nb.guvectorize(["float64, int32, float64[:], float64, float64[:]"], "(), (), (n), ()->()")
+    def _get_Nsct(E, idE, nonl, Ysct, Nsct):
         """
-        calculate scintillation photon number
+        calculate scintillation photon number with numba
         input: true deposited energy
         output: scintillation photon number
         """
 
-        idE = int(E / 0.001)
         nl = nonl[idE]
         Nsct[0] = nl * Ysct * E
 
 
-    #@profile
     @np.vectorize
+    #@profile
     def get_Nsct(E, kB, Ysct):
         idx, idy = int(kB*10000), int(E * 1000)
         nonl = gol.get_kB_value(f"kB{idx}")[idy]

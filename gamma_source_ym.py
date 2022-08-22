@@ -69,11 +69,25 @@ class gamma(object):
         n = gol.get_fitpar_value("n")
         Y = gol.get_fitpar_value("Y")
         electronResponse.update()
+        snonl = electronResponse.get_nonl()
 
-        tmp_totnpe_per_event = electronResponse.get_Nsct(
-            self.elec, kB, Ysct) + electronResponse.get_Ncer(
-                self.elec, p0, p1, p2, E0) + electronResponse.get_Nsct(
-                    self.posi, kB, Ysct) + electronResponse.get_Ncer(
+        ### Use un-numba get_Nsct attribute
+        # tmp_totnpe_per_event = electronResponse.get_Nsct(
+        #     self.elec, kB, Ysct) + electronResponse.get_Ncer(
+        #         self.elec, p0, p1, p2, E0) + electronResponse.get_Nsct(
+        #             self.posi, kB, Ysct) + electronResponse.get_Ncer(
+        #                 self.posi, p0, p1, p2, E0)
+        ### Use numba guvectorize attribute
+
+        elecID = (self.elec * 1000.).astype(int)
+        posiID = (self.posi * 1000.).astype(int)
+        print(self.elec)
+        print(elecID)
+        tmp_totnpe_per_event = electronResponse._get_Nsct(
+            self.elec, elecID, snonl, Ysct) + electronResponse.get_Ncer(
+                self.elec, p0, p1, p2, E0) + electronResponse._get_Nsct(
+                    self.posi, posiID,
+                    snonl, Ysct) + electronResponse.get_Ncer(
                         self.posi, p0, p1, p2, E0)
         totnpe_per_event = np.sum(
             tmp_totnpe_per_event, axis=1) + np.count_nonzero(
@@ -84,8 +98,7 @@ class gamma(object):
         elecN = Y * self.elec
         posiN = Y * self.posi
         sub_npe_sigma = electronResponse.get_Nsigma(
-            elecN, a, b, n)**2 + electronResponse.get_Nsigma(
-                posiN, a, b, n)**2
+            elecN, a, b, n)**2 + electronResponse.get_Nsigma(posiN, a, b, n)**2
         sigma_per_event = np.sum(sub_npe_sigma, axis=1) + np.count_nonzero(
             self.posi, axis=1) * float(gol.get_fitpar_value("sigmaGe68"))**2
         sigma2_ave = np.average(sigma_per_event)
