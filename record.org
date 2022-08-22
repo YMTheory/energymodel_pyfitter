@@ -33,3 +33,5 @@ because Function "_get_Nsct" failed type inference due to: No implementation of 
     ufunc '_get_Nsct' not supported for the input types, and the inputs could not be safely coerced to any supported types according to the casting rule ''safe''。
   -  原因可能是对input参数的维度定义不对，修改了guvectorize里参数的类型和维数，并在内部用了循环。NOW IT WORKS!!!
     且运行时间变成了40ms+，提高了20倍左右； 
+
+ - 目前的测试结果，一次_calc的运行大约不到40-50ms，跑一个完整的iminuit-based UnbinnedNLL（9个gamma source的联合拟合）不到十分钟。

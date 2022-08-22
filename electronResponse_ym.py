@@ -156,4 +156,3 @@ class electronResponse(object):
         axs[1].plot(er_mom, er_sigma/er_mu)
         axs[1].plot(er_mom, y_res)
         plt.show()
-
