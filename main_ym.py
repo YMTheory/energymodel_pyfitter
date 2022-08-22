@@ -1,7 +1,7 @@
-from electronResponse_ym import electronResponse
-import parameters_ym as gol
-from gamma_source_ym import gamma
 import fitter as f
+import parameters_ym as gol
+from electronResponse_ym import electronResponse
+from gamma_source_ym import gamma
 
 if __name__ == "__main__":
 
@@ -18,9 +18,7 @@ if __name__ == "__main__":
 
     er = electronResponse()
 
-    # # a plotting snippet
     # er._compareTruth()
-
 
     gamma_sources = []
     gamma_names = [
@@ -28,28 +26,19 @@ if __name__ == "__main__":
     ]
     gamma_E = [0.662, 0.835, 1.022, 1.461, 2.223, 2.506, 4.43, 4.94, 6.13]
     for name, E in zip(gamma_names, gamma_E):
+        if name != "Cs137":
+            continue
         gamma_sources.append(gamma(name, E))
-
-    er = electronResponse()
 
     for gam in gamma_sources:
         gam._calc()
-        gam._print()
-        gam._plot()
+        gam._calc()
+        gam._calc()
+        # gam._print()
+        # gam._plot()
 
-    ### Debugger:
-    #er = electronResponse() ### This class must be initialized firstly !!!
+    # f.fitter()
 
-    #Cs137 = gamma("Cs137", 0.662)
-    # Cs137._pdf(1.0,
-    #            kB=6.7e-3,
-    #            Ysct=1413,
-    #            p0=98,
-    #            p1=0.556,
-    #            p2=0.277,
-    #            E0=0.192,
-    #            a=0.974,
-    #            b=0.045,
-    #            n=1.62)
-    #
-    #f.fitter()
+
+
+

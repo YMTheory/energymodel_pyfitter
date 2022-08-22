@@ -3,6 +3,20 @@ import parameters_ym as gol
 import logging
 import uproot as up
 import numba as nb
+from numba import int32, float32, float64
+
+# @nb.vectorize([float64(float64, float64, float64, float64, float64)], target="parallel", nopython=True)
+# def _get_Ncer(E, p0, p1, p2, E0):
+#     E = E - E0
+#     if E < 0:
+#         return 0
+#     else:
+#         return p0 * E**2 / (E + p1 * np.exp(-p2 * E))
+
+
+# @nb.vectorize([float64(float64, float64, float64, float64)], target="parallel", nopython=True)
+# def _get_Nsigma(N, a, b, n):
+#     return np.sqrt(a**2 * N + b**2 * N**n)
 
 
 class electronResponse(object):
@@ -29,58 +43,82 @@ class electronResponse(object):
             except FileNotFoundError:
                 gol.set_kB_value(hname, np.zeros(len(gol.get_quenchE())))
 
+        # a nominal initial values
+        electronResponse.quenchNL = gol.get_kB_value("kB65")
+
     @staticmethod
-    @np.vectorize
-    # @nb.vectorize
-    def get_Nsct(E):
+    def update():
+        kB = gol.get_fitpar_value("kB")
+        kBidx = int(kB * 10000)
+        electronResponse.quenchNL = gol.get_kB_value(f"kB{kBidx}")
+
+    @staticmethod
+    def get_nonl():
+        return electronResponse.quenchNL
+
+    @staticmethod
+    @nb.guvectorize(["float64[:], float64[:], float64, float64[:]"], "(), (n), ()->()")
+    def _get_Nsct(E, nonl, Ysct, Nsct):
         """
         calculate scintillation photon number
         input: true deposited energy
         output: scintillation photon number
         """
-        kB = gol.get_fitpar_value("kB")
-        Ysct = gol.get_fitpar_value("Ysct")
 
-        idx, idy = int((kB) * 10000), int(E / 0.001)
-        nl = gol.get_kB_value(f"kB{idx}")[idy]
-        N = nl * Ysct * E
-        return N
+        idE = int(E / 0.001)
+        nl = nonl[idE]
+        Nsct[0] = nl * Ysct * E
+
+
+    #@profile
+    @np.vectorize
+    def get_Nsct(E, kB, Ysct):
+        idx, idy = int(kB*10000), int(E * 1000)
+        nonl = gol.get_kB_value(f"kB{idx}")[idy]
+        Nsct = Ysct * E * nonl
+        return Nsct
+
+
 
     @staticmethod
-    @np.vectorize
-    def get_Ncer(E):
+    #@profile
+    #@np.vectorize
+    @nb.vectorize([float64(float64, float64, float64, float64, float64)], target="parallel", nopython=True)
+    def get_Ncer(E, p0, p1, p2, E0):
         """
         calculate Cherenkov photon number
         input: true deposited energy
         output: Cherenkov photon number
         """
-        p0 = gol.get_fitpar_value("p0")
-        p1 = gol.get_fitpar_value("p1")
-        p2 = gol.get_fitpar_value("p2")
-        E0 = gol.get_fitpar_value("E0")
+        # p0 = gol.get_fitpar_value("p0")
+        # p1 = gol.get_fitpar_value("p1")
+        # p2 = gol.get_fitpar_value("p2")
+        # E0 = gol.get_fitpar_value("E0")
 
         E = E - E0
         if E < 0:
             return 0
         else:
             return p0 * E**2 / (E + p1 * np.exp(-p2 * E))
+        # return _get_Ncer(E, p0, p1, p2, E0)
 
     @staticmethod
-    @np.vectorize
-    def get_Nsigma(E):
+    # @np.vectorize
+    @nb.vectorize([float64(float64, float64, float64, float64)], target="parallel", nopython=True)
+    def get_Nsigma(N, a, b, n):
         """
         calculate NPE sigma value
-        input: true deposited energy
+        input: NPE
         output: sigma_NPE
         """
-        a = gol.get_fitpar_value("a")
-        b = gol.get_fitpar_value("b")
-        n = gol.get_fitpar_value("n")
-        Y = gol.get_fitpar_value("Y")
-        N = E * float(Y)
+        # a = gol.get_fitpar_value("a")
+        # b = gol.get_fitpar_value("b")
+        # n = gol.get_fitpar_value("n")
+        # Y = gol.get_fitpar_value("Y")
+        # N = E * float(Y)
 
         return np.sqrt(a**2 * N + b**2 * N**n)
-
+        # return _get_Nsigma(N, a, b, n)
 
     @staticmethod
     def _compareTruth():
@@ -118,3 +156,4 @@ class electronResponse(object):
         axs[1].plot(er_mom, er_sigma/er_mu)
         axs[1].plot(er_mom, y_res)
         plt.show()
+

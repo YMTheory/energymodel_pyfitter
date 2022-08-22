@@ -5,7 +5,6 @@ from scipy.stats import norm
 import matplotlib.pyplot as plt
 import numba as nb
 
-
 from electronResponse_ym import electronResponse
 import parameters_ym as gol
 
@@ -51,25 +50,42 @@ class gamma(object):
     def get_pred_sigma(self):
         return self.pred_sigma
 
-    #@timebudget
-    @profile
+    @timebudget
+    #@profile
     def _calc(self):
         """
         predict mean and sigma of NPE dist.
         outputs: prediction values of NPE mean and sigma
         """
+
+        kB = gol.get_fitpar_value("kB")
+        Ysct = gol.get_fitpar_value("Ysct")
+        p0 = gol.get_fitpar_value("p0")
+        p1 = gol.get_fitpar_value("p1")
+        p2 = gol.get_fitpar_value("p2")
+        E0 = gol.get_fitpar_value("E0")
+        a = gol.get_fitpar_value("a")
+        b = gol.get_fitpar_value("b")
+        n = gol.get_fitpar_value("n")
+        Y = gol.get_fitpar_value("Y")
+        electronResponse.update()
+
         tmp_totnpe_per_event = electronResponse.get_Nsct(
-            self.elec) + electronResponse.get_Ncer(
-                self.elec) + electronResponse.get_Nsct(
-                    self.posi) + electronResponse.get_Ncer(self.posi)
+            self.elec, kB, Ysct) + electronResponse.get_Ncer(
+                self.elec, p0, p1, p2, E0) + electronResponse.get_Nsct(
+                    self.posi, kB, Ysct) + electronResponse.get_Ncer(
+                        self.posi, p0, p1, p2, E0)
         totnpe_per_event = np.sum(
             tmp_totnpe_per_event, axis=1) + np.count_nonzero(
                 self.posi, axis=1) * float(gol.get_fitpar_value("npeGe68"))
         pred_npe_mean = np.average(totnpe_per_event)
         # print(f"__predicted mean npe {pred_npe_mean}")
 
+        elecN = Y * self.elec
+        posiN = Y * self.posi
         sub_npe_sigma = electronResponse.get_Nsigma(
-            self.elec)**2 + electronResponse.get_Nsigma(self.posi)**2
+            elecN, a, b, n)**2 + electronResponse.get_Nsigma(
+                posiN, a, b, n)**2
         sigma_per_event = np.sum(sub_npe_sigma, axis=1) + np.count_nonzero(
             self.posi, axis=1) * float(gol.get_fitpar_value("sigmaGe68"))**2
         sigma2_ave = np.average(sigma_per_event)
@@ -78,7 +94,9 @@ class gamma(object):
         # print(f"__predicted npe sigma {pred_npe_sigma}")
 
         self.pred_mu, self.pred_sigma = pred_npe_mean, pred_npe_sigma
-        print(f"{self.name}: __pred_mu = {self.pred_mu}, __pred_sigam = {self.pred_sigma}")
+        print(
+            f"{self.name}: __pred_mu = {self.pred_mu}, __pred_sigam = {self.pred_sigma}"
+        )
         return pred_npe_mean, pred_npe_sigma
 
     def _pdf(self, x, kB, Ysct, p0, p1, p2, E0, a, b, n):

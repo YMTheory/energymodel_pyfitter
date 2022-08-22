@@ -11,14 +11,6 @@ def fitter():
     gamma_names = ["Cs137", "Mn54", "Ge68", "K40", "nH", "Co60", "AmBe", "nC12", "AmC"]
     gamma_E = [0.662, 0.835, 1.022, 1.461, 2.223, 2.506, 4.43, 4.94, 6.13]
 
-    # Debugger:
-    print("======== Detector configurations ========")
-    print(f"Energy scale = {gol.get_fitpar_value('Y')}")
-    print(f"Ge68 npe = {gol.get_fitpar_value('npeGe68')}")
-    print(f"Ge68 sigma = {gol.get_fitpar_value('sigmaGe68')}")
-    print("=================================")
-
-
     for name, E in zip(gamma_names, gamma_E):
         ### For test:
         # if name != "Cs137":
