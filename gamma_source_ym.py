@@ -4,6 +4,7 @@ import uproot as up
 from scipy.stats import norm
 import matplotlib.pyplot as plt
 import numba as nb
+import math
 
 from electronResponse_ym import electronResponse
 import parameters_ym as gol
@@ -79,18 +80,30 @@ class gamma(object):
         #         self.elec, p0, p1, p2, E0) + electronResponse.get_Nsct(
         #             self.posi, kB, Ysct) + electronResponse.get_Ncer(
         #                 self.posi, p0, p1, p2, E0)
-        ### Use numba guvectorize attribute
+
         elecID = (self.elec * 1000.).astype(int)
         posiID = (self.posi * 1000.).astype(int)
         Nsct_elec = np.zeros_like(self.elec)
         Nsct_posi = np.zeros_like(self.posi)
-        tmp_totnpe_per_event = electronResponse._get_Nsct(
-            self.elec.astype(np.float64), elecID, snonl,
-            Ysct, Nsct_elec) + electronResponse.get_Ncer(
-                self.elec, p0, p1, p2, E0) + electronResponse._get_Nsct(
-                    self.posi.astype(np.float64), posiID, snonl, Ysct,
-                    Nsct_posi) + electronResponse.get_Ncer(
-                        self.posi, p0, p1, p2, E0)
+        ### Use numba guvectorize attribute
+        #tmp_totnpe_per_event = electronResponse._get_Nsct(
+        #    self.elec.astype(np.float64), elecID, snonl,
+        #    Ysct, Nsct_elec) + electronResponse.get_Ncer(
+        #        self.elec, p0, p1, p2, E0) + electronResponse._get_Nsct(
+        #            self.posi.astype(np.float64), posiID, snonl, Ysct,
+        #            Nsct_posi) + electronResponse.get_Ncer(
+        #                self.posi, p0, p1, p2, E0)
+
+        ## Use cuda jit
+        threadsperblock = 256
+        blockspergrid = math.ceil(self.elec.shape[0] / threadsperblock)
+        electronResponse._get_Nsct_cuda[threadsperblock, blockspergrid](self.elec.astype(np.float64), elecID, snonl, Ysct, Nsct_elec)
+        electronResponse._get_Nsct_cuda[threadsperblock, blockspergrid](self.posi.astype(np.float64), elecID, snonl, Ysct, Nsct_posi)
+
+        tmp_totnpe_per_event = Nsct_elec + electronResponse.get_Ncer(
+                self.elec, p0, p1, p2, E0) + Nsct_posi + electronResponse.get_Ncer(
+                            self.posi, p0, p1, p2, E0)
+
         totnpe_per_event = np.sum(
             tmp_totnpe_per_event, axis=1) + np.count_nonzero(
                 self.posi, axis=1) * float(gol.get_fitpar_value("npeGe68"))

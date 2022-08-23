@@ -1,7 +1,6 @@
 import numpy as np
 import math
 import parameters_ym as gol
-import logging
 import uproot as up
 import numba as nb
 from numba import int32, int64, float32, float64
@@ -17,21 +16,19 @@ class electronResponse(object):
         print("------ Initialzed electron response -----")
         #quenchNL_file = "/Volumes/home/Data/EnergyModel/Quench_NumInt.root"
         quenchNL_file = "/hpcfs/juno/junogpu/miaoyu/energy_model/data/Quench_NumInt.root"
-        fquenchNL = up.open(quenchNL_file)
-        logging.debug("Quenching nonlinearity is loaded from %s" %
-                      quenchNL_file)
+        try:
+            fquenchNL = up.open(quenchNL_file)
 
-        Emin, Emax, Estep = 5e-4, 14.9995, 1e-3
-        gol.set_quenchE(np.arange(Emin, Emax, Estep))
+            Emin, Emax, Estep = 5e-4, 14.9995, 1e-3
+            gol.set_quenchE(np.arange(Emin, Emax, Estep))
 
-        kBmin, kBmax = 45, 95
-        for ikb in range(kBmin, kBmax, 1):
-            hname = "kB" + str(ikb)
-            try:
+            kBmin, kBmax = 45, 95
+            for ikb in range(kBmin, kBmax, 1):
+                hname = "kB" + str(ikb)
                 hquenchNL = fquenchNL[f"{hname}"]
-                gol.set_kB_value(hname, hquenchNL.to_numpy()[0])
-            except FileNotFoundError:
-                gol.set_kB_value(hname, np.zeros(len(gol.get_quenchE())))
+                gol.set_kB_value(hname, hquenchNL.to_numpy()[0])    
+        except FileNotFoundError:
+            raise FileNotFoundError(f"Quenching nonlinearity file {quenchNL_file} dose not exist! The Fitter can not be executed furthermore :(")
 
         # a nominal initial values
         electronResponse.quenchNL = gol.get_kB_value("kB65")
@@ -46,19 +43,41 @@ class electronResponse(object):
     def get_nonl():
         return electronResponse.quenchNL
 
+
+
+
+    @staticmethod
+    @cuda.jit()
+    def _get_Nsct_cuda(E, idE, nonl, Ysct, Nsct):
+        """
+        CUDA jit acceleration test
+        """
+        for i in range(E.shape[0]):
+            for j in range(E.shape[1]):
+                nl = nonl[idE[i, j]]
+                Nsct[i, j] = nl * Ysct * E[i, j]
+
+
     @staticmethod
     @nb.guvectorize(["float64[:], int64[:], float64[:], float64, float64[:]"], "(n), (n), (m), ()->(n)", target="parallel", nopython=True)
-    #@nb.guvectorize(["float64[:], int64[:], float64[:], float64, float64[:]"], "(n), (n), (m), ()->(n)", target="cuda")
+    #@nb.guvectorize(["void(float64[:, :], int64[:, :], float64[:], float64, float64[:, :])"], "(m, n), (m, n), (l), ()->(m, n)", target="cuda")
     def _get_Nsct(E, idE, nonl, Ysct, Nsct):
         """
         calculate scintillation photon number with numba
         input: true deposited energy
         output: scintillation photon number
         """
-
+        ### codes for non-cuda numba version
         for i in range(E.shape[0]):
             nl = nonl[idE[i]]
             Nsct[i] = nl * Ysct * E[i]
+        ###
+
+        #### codes for cuda version
+        #for i in range(E.shape[0]):
+        #    for j in range(E.shape[1]):
+        #        nl = nonl[idE[i, j]]
+        #        Nsct[i, j] = nl * Ysct * E[i, j]
 
 
     @np.vectorize
