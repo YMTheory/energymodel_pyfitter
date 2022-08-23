@@ -18,7 +18,8 @@ class gamma(object):
         self.name = name
         self.E = E
 
-        filename = f"/Volumes/home/Data/EnergyModel/{name}_J19.root"
+        #filename = f"/Volumes/home/Data/EnergyModel/{name}_J19.root"
+        filename = f"../data/{name}_J19.root"
         print(f">>> Load Primary e+- Collections for {name}")
         ff = up.open(filename)
         gol.set_prm_value(f"{name}_elec", ff[f"{name}_elec"].to_numpy()[0])
@@ -26,7 +27,8 @@ class gamma(object):
         self.elec = gol.get_prm_value(f"{name}_elec")
         self.posi = gol.get_prm_value(f"{name}_posi")
 
-        filename = f"/Volumes/home/Data/EnergyModel/{name}_new.root"
+        #filename = f"/Volumes/home/Data/EnergyModel/{name}_new.root"
+        filename = f"../data/{name}_new.root"
         print(f">>> Load MC data for {name}")
         ff = up.open(filename)
         gol.set_npe_value(f"{name}", ff["photon"]["totPE"].array())
