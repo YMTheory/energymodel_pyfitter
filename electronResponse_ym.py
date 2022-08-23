@@ -1,4 +1,5 @@
 import numpy as np
+import math
 import parameters_ym as gol
 import logging
 import uproot as up
@@ -47,6 +48,7 @@ class electronResponse(object):
 
     @staticmethod
     @nb.guvectorize(["float64[:], int64[:], float64[:], float64, float64[:]"], "(n), (n), (m), ()->(n)", target="parallel", nopython=True)
+    #@nb.guvectorize(["float64[:], int64[:], float64[:], float64, float64[:]"], "(n), (n), (m), ()->(n)", target="cuda")
     def _get_Nsct(E, idE, nonl, Ysct, Nsct):
         """
         calculate scintillation photon number with numba
@@ -72,7 +74,8 @@ class electronResponse(object):
     @staticmethod
     #@profile
     #@np.vectorize
-    @nb.vectorize([float64(float64, float64, float64, float64, float64)], target="parallel", nopython=True)
+    #@nb.vectorize([float64(float64, float64, float64, float64, float64)], target="parallel", nopython=True)
+    @nb.vectorize([float64(float64, float64, float64, float64, float64)], target="cuda")
     def get_Ncer(E, p0, p1, p2, E0):
         """
         calculate Cherenkov photon number
@@ -88,12 +91,14 @@ class electronResponse(object):
         if E < 0:
             return 0
         else:
-            return p0 * E**2 / (E + p1 * np.exp(-p2 * E))
+            #return p0 * E**2 / (E + p1 * np.exp(-p2 * E))
+            return p0 * E**2 / (E + p1 * math.exp(-p2 * E))
         # return _get_Ncer(E, p0, p1, p2, E0)
 
     @staticmethod
     # @np.vectorize
-    @nb.vectorize([float64(float64, float64, float64, float64)], target="parallel", nopython=True)
+    #@nb.vectorize([float64(float64, float64, float64, float64)], target="parallel", nopython=True)
+    @nb.vectorize([float64(float64, float64, float64, float64)], target="cuda")
     def get_Nsigma(N, a, b, n):
         """
         calculate NPE sigma value
@@ -106,7 +111,8 @@ class electronResponse(object):
         # Y = gol.get_fitpar_value("Y")
         # N = E * float(Y)
 
-        return np.sqrt(a**2 * N + b**2 * N**n)
+        return math.sqrt(a**2 * N + b**2 * N**n)
+        #return np.sqrt(a**2 * N + b**2 * N**n)
         # return _get_Nsigma(N, a, b, n)
 
     @staticmethod
