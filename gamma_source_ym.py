@@ -83,39 +83,51 @@ class gamma(object):
         electronResponse.update()
         snonl = electronResponse.get_nonl()
 
-        ### Use un-numba get_Nsct attribute
-        # tmp_totnpe_per_event = electronResponse.get_Nsct(
-        #     self.elec, kB, Ysct) + electronResponse.get_Ncer(
-        #         self.elec, p0, p1, p2, E0) + electronResponse.get_Nsct(
-        #             self.posi, kB, Ysct) + electronResponse.get_Ncer(
-        #                 self.posi, p0, p1, p2, E0)
-
-        elecID = (self.elec * 1000.).astype(int)
-        posiID = (self.posi * 1000.).astype(int)
-        Nsct_elec = np.zeros_like(self.elec)
-        Nsct_posi = np.zeros_like(self.posi)
-        ### Use numba guvectorize attribute
-        #tmp_totnpe_per_event = electronResponse._get_Nsct(
-        #    self.elec.astype(np.float64), elecID, snonl,
-        #    Ysct, Nsct_elec) + electronResponse.get_Ncer(
-        #        self.elec, p0, p1, p2, E0) + electronResponse._get_Nsct(
-        #            self.posi.astype(np.float64), posiID, snonl, Ysct,
-        #            Nsct_posi) + electronResponse.get_Ncer(
-        #                self.posi, p0, p1, p2, E0)
-
-        ## Use cuda jit
-        threadsperblock = 256
-        blockspergrid = math.ceil(self.elec.shape[0] / threadsperblock)
-        ##electronResponse._get_Nsct_cuda[threadsperblock, blockspergrid](self.elec.astype(np.float64), elecID, snonl, Ysct, Nsct_elec)
-        ##electronResponse._get_Nsct_cuda[threadsperblock, blockspergrid](self.posi.astype(np.float64), posiID, snonl, Ysct, Nsct_posi)
-        print(f"device array: {self.d_elec}")
-        print(f"device array: {self.d_posi}")
-        electronResponse._get_Nsct_cuda[threadsperblock, blockspergrid](self.d_elec, self.d_elecID, snonl, Ysct, Nsct_elec)
-        electronResponse._get_Nsct_cuda[threadsperblock, blockspergrid](self.d_posi, self.d_posiID, snonl, Ysct, Nsct_posi)
-
-        tmp_totnpe_per_event = Nsct_elec + electronResponse.get_Ncer(
-                self.elec, p0, p1, p2, E0) + Nsct_posi + electronResponse.get_Ncer(
+        if gol.get_run_mode() == "normal":
+            ## Use un-numba get_Nsct attribute
+            tmp_totnpe_per_event = electronResponse.get_Nsct(
+                self.elec, kB, Ysct) + electronResponse.get_Ncer(
+                    self.elec, p0, p1, p2, E0) + electronResponse.get_Nsct(
+                        self.posi, kB, Ysct) + electronResponse.get_Ncer(
                             self.posi, p0, p1, p2, E0)
+
+        if gol.get_run_mode() == "vec":
+            """
+            Use numba vectorize mode 
+            """
+            elecID = (self.elec * 1000.).astype(int)
+            posiID = (self.posi * 1000.).astype(int)
+            Nsct_elec = np.zeros_like(self.elec)
+            Nsct_posi = np.zeros_like(self.posi)
+            tmp_totnpe_per_event = electronResponse._get_Nsct(
+                self.elec.astype(np.float64), elecID, snonl,
+                Ysct, Nsct_elec) + electronResponse.get_Ncer(
+                    self.elec, p0, p1, p2, E0) + electronResponse._get_Nsct(
+                        self.posi.astype(np.float64), posiID, snonl, Ysct,
+                        Nsct_posi) + electronResponse.get_Ncer(
+                            self.posi, p0, p1, p2, E0)
+
+        if gol.get_run_mode() == "cuda":
+            ## Use cuda jit
+            threadsperblock = 256
+            blockspergrid = math.ceil(self.elec.shape[0] / threadsperblock)
+            ##electronResponse._get_Nsct_cuda[threadsperblock, blockspergrid](self.elec.astype(np.float64), elecID, snonl, Ysct, Nsct_elec)
+            ##electronResponse._get_Nsct_cuda[threadsperblock, blockspergrid](self.posi.astype(np.float64), posiID, snonl, Ysct, Nsct_posi)
+            electronResponse._get_Nsct_cuda[threadsperblock,
+                                            blockspergrid](self.d_elec,
+                                                           self.d_elecID,
+                                                           snonl, Ysct,
+                                                           Nsct_elec)
+            electronResponse._get_Nsct_cuda[threadsperblock,
+                                            blockspergrid](self.d_posi,
+                                                           self.d_posiID,
+                                                           snonl, Ysct,
+                                                           Nsct_posi)
+
+            tmp_totnpe_per_event = Nsct_elec + electronResponse.get_Ncer(
+                self.elec, p0, p1, p2,
+                E0) + Nsct_posi + electronResponse.get_Ncer(
+                    self.posi, p0, p1, p2, E0)
 
         totnpe_per_event = np.sum(
             tmp_totnpe_per_event, axis=1) + np.count_nonzero(

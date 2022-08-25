@@ -37,6 +37,7 @@ def fitter():
 
     print("======== Fitting Outputs ========")
     print(f"Best fit {m.values}")
+    print(f"Fit errors {m.errors}")
     print(m.covariance)
     print(m.fmin)
     print("=================================")
