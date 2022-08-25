@@ -17,7 +17,7 @@ def _init():
     global _quenchE
 
     global _run_mode
-
+    _run_mode = "vec"
 
 def get_fitpar_value(key):
     """
@@ -102,6 +102,7 @@ def set_quenchE(val):
     """
     set quenching curves E
     """
+    global _quenchE
     _quenchE = val
 
 
@@ -111,6 +112,7 @@ def set_run_mode(mode):
     """
     assert (mode == "normal" or mode == "vec" or mode == "cuda"
             ), "Wrong run_mode inputs, options are only normal, vec and cuda"
+    global _run_mode
     _run_mode = mode
 
 

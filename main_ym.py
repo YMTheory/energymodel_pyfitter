@@ -6,6 +6,7 @@ from gamma_source_ym import gamma
 if __name__ == "__main__":
 
     gol._init()
+    gol.set_run_mode("vec")
 
     # initialize fitting parameters
     gol.set_fitpar_value_ingroup([
@@ -30,8 +31,8 @@ if __name__ == "__main__":
 
     for gam in gamma_sources:
         gam._calc()
-        gam._calc()
-        gam._calc()
+        #gam._calc()
+        #gam._calc()
         gam._print()
         #gam._plot()
 

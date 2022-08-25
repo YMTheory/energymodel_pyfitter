@@ -63,7 +63,7 @@ class gamma(object):
         return self.pred_sigma
 
     @timebudget
-    #@profile
+    @profile
     def _calc(self):
         """
         predict mean and sigma of NPE dist.
