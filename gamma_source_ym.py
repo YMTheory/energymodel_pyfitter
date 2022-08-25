@@ -41,6 +41,15 @@ class gamma(object):
         self.pred_mu = 0
         self.pred_sigma = 0
 
+        tmp_elec = np.ascontiguousarray(self.elec)
+        self.d_elec = nb.cuda.to_device(tmp_elec)
+        tmp_elecID = np.ascontiguousarray((self.elec * 1000.).astype(int))
+        self.d_elecID = nb.cuda.to_device(tmp_elecID)
+        tmp_posi = np.ascontiguousarray(self.posi)
+        self.d_posi = nb.cuda.to_device(tmp_posi)
+        tmp_posiID = np.ascontiguousarray((self.posi * 1000.).astype(int))
+        self.d_posiID = nb.cuda.to_device(tmp_posiID)
+
     def get_name(self):
         return self.name
 
@@ -97,8 +106,12 @@ class gamma(object):
         ## Use cuda jit
         threadsperblock = 256
         blockspergrid = math.ceil(self.elec.shape[0] / threadsperblock)
-        electronResponse._get_Nsct_cuda[threadsperblock, blockspergrid](self.elec.astype(np.float64), elecID, snonl, Ysct, Nsct_elec)
-        electronResponse._get_Nsct_cuda[threadsperblock, blockspergrid](self.posi.astype(np.float64), elecID, snonl, Ysct, Nsct_posi)
+        ##electronResponse._get_Nsct_cuda[threadsperblock, blockspergrid](self.elec.astype(np.float64), elecID, snonl, Ysct, Nsct_elec)
+        ##electronResponse._get_Nsct_cuda[threadsperblock, blockspergrid](self.posi.astype(np.float64), posiID, snonl, Ysct, Nsct_posi)
+        print(f"device array: {self.d_elec}")
+        print(f"device array: {self.d_posi}")
+        electronResponse._get_Nsct_cuda[threadsperblock, blockspergrid](self.d_elec, self.d_elecID, snonl, Ysct, Nsct_elec)
+        electronResponse._get_Nsct_cuda[threadsperblock, blockspergrid](self.d_posi, self.d_posiID, snonl, Ysct, Nsct_posi)
 
         tmp_totnpe_per_event = Nsct_elec + electronResponse.get_Ncer(
                 self.elec, p0, p1, p2, E0) + Nsct_posi + electronResponse.get_Ncer(

@@ -33,7 +33,7 @@ if __name__ == "__main__":
         gam._calc()
         gam._calc()
         gam._print()
-        gam._plot()
+        #gam._plot()
 
     # f.fitter()
 
