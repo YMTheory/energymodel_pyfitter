@@ -7,7 +7,7 @@
        ...
  - python -m line_profiler script_to_profile.py.lprof
 
-   [[file:./time_profiler_0821.png]]
+ ;;  [[[[file:./time_profiler_0821.png]]]]
  - The _calc function for each source takes around 1.8s each time, and the figure displays the time profiles.
  - 可以看见主要的时间开销还是在vectorized的三个array计算上面。
 
@@ -22,16 +22,60 @@ Numba: nopython mode, just-in-time compilation. （普通python程序编译时�
 *** Try to use numba.vectorize / nb.guvectorize method...
 - 尝试将计算闪烁光子个数，切伦科夫光子个数以及光子数涨落的函数进行vectorize；
 - 闪烁光子的计算遇到问题，目前的idea是传入kB对应的nonlinearity曲线，需要用numba.guvectorize装饰器
-  - 目前还会出现报错：
+     - 目前还会出现报错：
     NumbaWarning: Compilation is falling back to object mode WITHOUT looplifting enabled
 because Function "_get_Nsct" failed type inference due to: No implementation of function Function(<class 'int'>) found for signature:
   - 如果仅仅不对get_Nsct做numba.vectorize操作，单次_calc的运算大约需要800ms+，profile的结果如下：
-  - [[file:./time_profile_0822.png]]
+  ;;- [[file:./time_profile_0822.png]]
   - （运行了profiler之后整体运行时间会变长，约2s）可以看出，此时程序占用时间最长的部分是get_Nsct()。
   - 使用numba.guvectorize的函数后甚至更慢了，其并没能nopython compilation；
   - 将Eid也作为一个参数输入后，不再有上述错误，对scalar可以运行了，但是对于array仍不行，有如下报错：
     ufunc '_get_Nsct' not supported for the input types, and the inputs could not be safely coerced to any supported types according to the casting rule ''safe''。
-  -  原因可能是对input参数的维度定义不对，修改了guvectorize里参数的类型和维数，并在内部用了循环。NOW IT WORKS!!!
-    且运行时间变成了40ms+，提高了20倍左右； 
+  - 原因可能是对input参数的维度定义不对，修改了guvectorize里参数的类型和维数，并在内部用了循环。NOW IT WORKS!!!
+   且运行时间变成了40ms+，提高了20倍左右； 
 
- - 目前的测试结果，一次_calc的运行大约不到40-50ms，跑一个完整的iminuit-based UnbinnedNLL（9个gamma source的联合拟合）不到十分钟。
+  - 目前的测试结果，一次_calc的运行大约不到40-50ms，跑一个完整的iminuit-based UnbinnedNLL（9个gamma source的联合拟合）不到十分钟。
+
+** 尝试CUDA对fitter进行加速：
+- 在服务器上使用CUDA资源；
+  #+BEGIN_SRC python
+    nb.vectorize(signatures, target="cuda")
+  #+END_SRC
+np.exp, np.sqrt methods are unsupported in CUDA, need to be replaced by math.exp, math.sqrt...
+如果所有函数都不用cuda操作，全部用cpu上的编译模式运行，得到的结果是大约1.3s一次；（远比cpu上的运行要慢，很可能是由于内存读写引起的耗时）
+如果不对Nsct做cuda操作，一个事例运行大约需要200+ms；
+
+- 另一个option是用cuda.jit(device=True)来尝试进行运行，而不用vectorize
+在集群上测试了这个方法，需要设置thread，grid等信息，稍微改动看了下，没有明显区别，且这样比get_Nsct直接使用guvectorize的方法要慢，大约要300ms+。
+
+- Memory Management: 尝试将elec/posi以及ID提前先传到device，利用（cuda.to_device）方法。然后调用kernel function，直接用device array。然而提升很有限，大约降到280ms左右。
+
+
+
+
+
+
+
+
+
+*** Numba Manual:
+- In CUDA, the code you write will be executed by multiple threads at once (often hundreds or thousands). Your solution will be modeled by defining a thread hierarchy of grid, blocks and threads.
+- Kernel declaration:
+- 不显示返回结果，只是讲结果写入到传入的列表里。需要在内部定义线程等级，thread blocks的个数以及每个block中thread的个数；
+  #+BEGIN_SRC python
+    @cuda.jit
+    def increment_by_one(an_array):
+    # Increment all elements in an array...
+  #+END_SRC   
+
+And a kernel is launched by,
+#+BEGIN_SRC python
+threadsperblock = 32
+blockspergrid = (an_array.size + (threadsperblock - 1)) // threadsperblock
+increment_by_one[blockspergrid, threadsperblock](an_array)
+#+END_SRC
+
+- Running the kernel, by passing it the input array (and any separate output arrays if necessary). By default, running a kernel is synchronous: the function returns when the kernel has finished executing and the data is synchronized back.
+- Numba can transfer numpy array to the device conservatively when a kernel is finished;
+
+
