@@ -63,7 +63,7 @@ class gamma(object):
         return self.pred_sigma
 
     @timebudget
-    @profile
+    #@profile
     def _calc(self):
         """
         predict mean and sigma of NPE dist.
@@ -109,6 +109,8 @@ class gamma(object):
 
         if gol.get_run_mode() == "cuda":
             ## Use cuda jit
+            Nsct_elec = np.zeros_like(self.elec)
+            Nsct_posi = np.zeros_like(self.posi)
             threadsperblock = 256
             blockspergrid = math.ceil(self.elec.shape[0] / threadsperblock)
             ##electronResponse._get_Nsct_cuda[threadsperblock, blockspergrid](self.elec.astype(np.float64), elecID, snonl, Ysct, Nsct_elec)
