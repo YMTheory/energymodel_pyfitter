@@ -54,6 +54,8 @@ np.exp, np.sqrt methods are unsupported in CUDA, need to be replaced by math.exp
 
 - Updates: 之前对cuda.jit的调用应该是没有正确实现并行，修改了里面的实现，需要先返回grid，然后对指定位置的数组元素进行计算。目前速度降到了70ms+一次运算。
 
+- Updates: 修改了guvectorize，使得在cuda模式下可用，一个关键是需要确保所有输入的array的类型与signatures相一致，目前的做法是在input之前对array都做一个astype的强制类型转换。
+  - 目前的结果是，在JUNO GPU集群上，使用cuda.jit装饰器或者用guvectorize(target="cuda")的速度差不多，都是大约80ms一次计算。
 
 
 
