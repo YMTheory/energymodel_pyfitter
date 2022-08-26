@@ -22,11 +22,10 @@ class electronResponse(object):
             Emin, Emax, Estep = 5e-4, 14.9995, 1e-3
             gol.set_quenchE(np.arange(Emin, Emax, Estep))
 
-            kBmin, kBmax = 45, 95
-            for ikb in range(kBmin, kBmax, 1):
-                hname = "kB" + str(ikb)
+            for hname in fquenchNL._keys_lookup:
                 hquenchNL = fquenchNL[f"{hname}"]
                 gol.set_kB_value(hname, hquenchNL.to_numpy()[0])    
+
         except FileNotFoundError:
             raise FileNotFoundError(f"Quenching nonlinearity file {quenchNL_file} dose not exist! The Fitter can not be executed furthermore :(")
 
