@@ -6,7 +6,7 @@ from gamma_source_ym import gamma
 if __name__ == "__main__":
 
     gol._init()
-    gol.set_run_mode("vec")
+    gol.set_run_mode("cuda")
 
     # initialize fitting parameters
     gol.set_fitpar_value_ingroup([

@@ -52,10 +52,17 @@ class electronResponse(object):
         """
         CUDA jit acceleration test
         """
-        for i in range(E.shape[0]):
-            for j in range(E.shape[1]):
-                nl = nonl[idE[i, j]]
-                Nsct[i, j] = nl * Ysct * E[i, j]
+        ## for i in range(E.shape[0]):
+        ##     for j in range(E.shape[1]):
+        ##         nl = nonl[idE[i, j]]
+        ##         Nsct[i, j] = nl * Ysct * E[i, j]
+
+        x, y = cuda.grid(2)
+        if x < Nsct.shape[0] and y < Nsct.shape[1]:
+            nl = nonl[idE[x, y]]
+            Nsct[x, y] = nl * Ysct * E[x, y]
+
+
 
 
     @staticmethod
