@@ -100,12 +100,12 @@ class gamma(object):
             Nsct_elec = np.zeros_like(self.elec)
             Nsct_posi = np.zeros_like(self.posi)
             tmp_totnpe_per_event = electronResponse._get_Nsct(
-                self.elec.astype(np.float64), elecID, snonl,
+                self.d_elec, self.d_elecID, snonl,
                 Ysct, Nsct_elec) + electronResponse.get_Ncer(
-                    self.elec, p0, p1, p2, E0) + electronResponse._get_Nsct(
-                        self.posi.astype(np.float64), posiID, snonl, Ysct,
+                    self.d_elec, p0, p1, p2, E0) + electronResponse._get_Nsct(
+                        self.d_posi, self.d_posiID, snonl, Ysct,
                         Nsct_posi) + electronResponse.get_Ncer(
-                            self.posi, p0, p1, p2, E0)
+                            self.d_posi, p0, p1, p2, E0)
 
         if gol.get_run_mode() == "cuda":
             ## Use cuda jit

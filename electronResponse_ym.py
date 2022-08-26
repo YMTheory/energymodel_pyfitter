@@ -62,8 +62,8 @@ class electronResponse(object):
 
 
     @staticmethod
-    @nb.guvectorize(["float64[:], int64[:], float64[:], float64, float64[:]"], "(n), (n), (m), ()->(n)", target="parallel", nopython=True)
-    #@nb.guvectorize(["void(float64[:, :], int64[:, :], float64[:], float64, float64[:, :])"], "(m, n), (m, n), (l), ()->(m, n)", target="cuda")
+    #@nb.guvectorize(["float64[:], int64[:], float64[:], float64, float64[:]"], "(n), (n), (m), ()->(n)", target="parallel", nopython=True)
+    @nb.guvectorize(["void(float64[:], int64[:], float64[:], float64, float64[:])"], "(n), (n), (l), ()->(n)", target="cuda")
     def _get_Nsct(E, idE, nonl, Ysct, Nsct):
         """
         calculate scintillation photon number with numba
