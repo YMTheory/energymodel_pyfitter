@@ -41,14 +41,18 @@ class gamma(object):
         self.pred_mu = 0
         self.pred_sigma = 0
 
-        tmp_elec = np.ascontiguousarray(self.elec)
-        self.d_elec = nb.cuda.to_device(tmp_elec)
-        tmp_elecID = np.ascontiguousarray((self.elec * 1000.).astype(int))
-        self.d_elecID = nb.cuda.to_device(tmp_elecID)
-        tmp_posi = np.ascontiguousarray(self.posi)
-        self.d_posi = nb.cuda.to_device(tmp_posi)
-        tmp_posiID = np.ascontiguousarray((self.posi * 1000.).astype(int))
-        self.d_posiID = nb.cuda.to_device(tmp_posiID)
+        if gol.get_run_mode == "cuda":
+            """
+            If run on CUDA -> copy array to the device firstly, reduce IO redundancy
+            """
+            tmp_elec = np.ascontiguousarray(self.elec)
+            self.d_elec = nb.cuda.to_device(tmp_elec)
+            tmp_elecID = np.ascontiguousarray((self.elec * 1000.).astype(int))
+            self.d_elecID = nb.cuda.to_device(tmp_elecID)
+            tmp_posi = np.ascontiguousarray(self.posi)
+            self.d_posi = nb.cuda.to_device(tmp_posi)
+            tmp_posiID = np.ascontiguousarray((self.posi * 1000.).astype(int))
+            self.d_posiID = nb.cuda.to_device(tmp_posiID)
 
     def get_name(self):
         return self.name
@@ -63,7 +67,7 @@ class gamma(object):
         return self.pred_sigma
 
     @timebudget
-    @profile
+    #@profile
     def _calc(self):
         """
         predict mean and sigma of NPE dist.
