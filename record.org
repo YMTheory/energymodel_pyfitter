@@ -36,7 +36,7 @@ because Function "_get_Nsct" failed type inference due to: No implementation of 
 
   - 目前的测试结果，一次_calc的运行大约不到40-50ms，跑一个完整的iminuit-based UnbinnedNLL（9个gamma source的联合拟合）不到十分钟。
 
-** 尝试CUDA对fitter进行加速：
+*** 尝试CUDA对fitter进行加速：
 - 在服务器上使用CUDA资源；
   #+BEGIN_SRC python
     nb.vectorize(signatures, target="cuda")
@@ -50,8 +50,9 @@ np.exp, np.sqrt methods are unsupported in CUDA, need to be replaced by math.exp
 
 - Memory Management: 尝试将elec/posi以及ID提前先传到device，利用（cuda.to_device）方法。然后调用kernel function，直接用device array。然而提升很有限，大约降到280ms左右。
 
+- 用line_profiler比较了一下，使用cuda和不使用cuda的程序，似乎不使用cuda的会快一些，不知道是不是由于data transfer引起的，需要想办法对此进行一个测试。
 
-
+- Updates: 之前对cuda.jit的调用应该是没有正确实现并行，修改了里面的实现，需要先返回grid，然后对指定位置的数组元素进行计算。目前速度降到了70ms+一次运算。
 
 
 
@@ -68,6 +69,7 @@ np.exp, np.sqrt methods are unsupported in CUDA, need to be replaced by math.exp
     # Increment all elements in an array...
   #+END_SRC   
 
+  
 And a kernel is launched by,
 #+BEGIN_SRC python
 threadsperblock = 32
