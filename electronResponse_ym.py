@@ -19,9 +19,6 @@ class electronResponse(object):
         try:
             fquenchNL = up.open(quenchNL_file)
 
-            Emin, Emax, Estep = 5e-4, 14.9995, 1e-3
-            gol.set_quenchE(np.arange(Emin, Emax, Estep))
-
             for hname in fquenchNL._keys_lookup:
                 hquenchNL = fquenchNL[f"{hname}"]
                 gol.set_kB_value(hname, hquenchNL.to_numpy()[0])    

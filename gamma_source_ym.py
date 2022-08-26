@@ -63,7 +63,7 @@ class gamma(object):
         return self.pred_sigma
 
     @timebudget
-    #@profile
+    @profile
     def _calc(self):
         """
         predict mean and sigma of NPE dist.
@@ -127,9 +127,9 @@ class gamma(object):
                                                            Nsct_posi)
 
             tmp_totnpe_per_event = Nsct_elec + electronResponse.get_Ncer(
-                self.elec, p0, p1, p2,
+                self.d_elec, p0, p1, p2,
                 E0) + Nsct_posi + electronResponse.get_Ncer(
-                    self.posi, p0, p1, p2, E0)
+                    self.d_posi, p0, p1, p2, E0)
 
         totnpe_per_event = np.sum(
             tmp_totnpe_per_event, axis=1) + np.count_nonzero(
