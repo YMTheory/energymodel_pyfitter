@@ -1,23 +1,23 @@
-def _init():
-    """
-    initialize fitting parameters in the global scope
-    """
-    global _global_fitpar_dict
-    _global_fitpar_dict = {}
+#def _init():
+"""
+initialize fitting parameters in the global scope
+"""
+global _global_fitpar_dict
+_global_fitpar_dict = {}
 
-    global _global_npe_dict
-    _global_npe_dict = {}
+global _global_npe_dict
+_global_npe_dict = {}
 
-    global _global_prm_dict
-    _global_prm_dict = {}
+global _global_prm_dict
+_global_prm_dict = {}
 
-    global _global_kB_dict
-    _global_kB_dict = {}
+global _global_kB_dict
+_global_kB_dict = {}
 
-    global _quenchE
+global _quenchE
 
-    global _run_mode
-    _run_mode = "vec"
+global _run_mode
+_run_mode = "cpu"
 
 def get_fitpar_value(key):
     """
@@ -110,8 +110,8 @@ def set_run_mode(mode):
     """
     Set run mode (options: normal, vec, cuda)
     """
-    assert (mode == "normal" or mode == "vec" or mode == "cuda"
-            ), "Wrong run_mode inputs, options are only normal, vec and cuda"
+    assert (mode == "cpu" or mode == "cuda"
+            ), "Wrong run_mode inputs, options are only cpu and cuda"
     global _run_mode
     _run_mode = mode
 

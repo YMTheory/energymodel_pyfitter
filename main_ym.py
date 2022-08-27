@@ -1,12 +1,10 @@
 # import fitter as f
 import parameters_ym as gol
-from electronResponse_ym import electronResponse
+from electronResponse_cuda import electronResponse
+#from electronResponse_cpu import electronResponse
 from gamma_source_ym import gamma
 
 if __name__ == "__main__":
-
-    gol._init()
-    gol.set_run_mode("vec")
 
     # initialize fitting parameters
     gol.set_fitpar_value_ingroup([

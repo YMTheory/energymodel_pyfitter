@@ -6,7 +6,9 @@ import matplotlib.pyplot as plt
 import numba as nb
 import math
 
-from electronResponse_ym import electronResponse
+#from electronResponse_ym import electronResponse
+#from electronResponse_cpu import electronResponse
+from electronResponse_cuda import electronResponse
 import parameters_ym as gol
 
 
@@ -27,6 +29,8 @@ class gamma(object):
         gol.set_prm_value(f"{name}_posi", ff[f"{name}_posi"].to_numpy()[0])
         self.elec = gol.get_prm_value(f"{name}_elec")
         self.posi = gol.get_prm_value(f"{name}_posi")
+        self.elecID = (self.elec * 1000).astype("int")
+        self.posiID = (self.posi * 1000).astype("int")
 
         #filename = f"/Volumes/home/Data/EnergyModel/{name}_new.root"
         filename = f"../data/{name}_new.root"
@@ -41,7 +45,7 @@ class gamma(object):
         self.pred_mu = 0
         self.pred_sigma = 0
 
-        if gol.get_run_mode == "cuda":
+        if gol.get_run_mode() == "cuda":
             """
             If run on CUDA -> copy array to the device firstly, reduce IO redundancy
             """
@@ -87,53 +91,43 @@ class gamma(object):
         electronResponse.update()
         snonl = electronResponse.get_nonl()
 
-        if gol.get_run_mode() == "normal":
-            ## Use un-numba get_Nsct attribute
-            tmp_totnpe_per_event = electronResponse.get_Nsct(
-                self.elec, kB, Ysct) + electronResponse.get_Ncer(
-                    self.elec, p0, p1, p2, E0) + electronResponse.get_Nsct(
-                        self.posi, kB, Ysct) + electronResponse.get_Ncer(
-                            self.posi, p0, p1, p2, E0)
-
-        if gol.get_run_mode() == "vec":
+        if gol.get_run_mode() == "cuda":
             """
-            Use numba vectorize mode 
+            Use numba cpu vectorize mode 
             """
-            elecID = (self.elec * 1000.).astype(int)
-            posiID = (self.posi * 1000.).astype(int)
+            TPG = 32
+            BPG = math.ceil(self.elec.shape[0] / TPG)
             Nsct_elec = np.zeros_like(self.elec)
             Nsct_posi = np.zeros_like(self.posi)
-            tmp_totnpe_per_event = electronResponse._get_Nsct(
+            tmp_totnpe_per_event = electronResponse.get_Nsct(
                 self.d_elec, self.d_elecID, snonl,
                 Ysct, Nsct_elec) + electronResponse.get_Ncer(
-                    self.d_elec, p0, p1, p2, E0) + electronResponse._get_Nsct(
+                    self.d_elec, p0, p1, p2, E0) + electronResponse.get_Nsct(
                         self.d_posi, self.d_posiID, snonl, Ysct,
                         Nsct_posi) + electronResponse.get_Ncer(
                             self.d_posi, p0, p1, p2, E0)
 
-        if gol.get_run_mode() == "cuda":
+        if gol.get_run_mode() == "cpu":
             ## Use cuda jit
             Nsct_elec = np.zeros_like(self.elec)
             Nsct_posi = np.zeros_like(self.posi)
-            threadsperblock = 256
-            blockspergrid = math.ceil(self.elec.shape[0] / threadsperblock)
-            ##electronResponse._get_Nsct_cuda[threadsperblock, blockspergrid](self.elec.astype(np.float64), elecID, snonl, Ysct, Nsct_elec)
-            ##electronResponse._get_Nsct_cuda[threadsperblock, blockspergrid](self.posi.astype(np.float64), posiID, snonl, Ysct, Nsct_posi)
-            electronResponse._get_Nsct_cuda[threadsperblock,
-                                            blockspergrid](self.d_elec,
-                                                           self.d_elecID,
-                                                           snonl, Ysct,
-                                                           Nsct_elec)
-            electronResponse._get_Nsct_cuda[threadsperblock,
-                                            blockspergrid](self.d_posi,
-                                                           self.d_posiID,
-                                                           snonl, Ysct,
-                                                           Nsct_posi)
+            electronResponse.get_Nsct(
+                                      self.elec,
+                                      self.elecID,
+                                      snonl, Ysct,
+                                      Nsct_elec
+                                      )
+            electronResponse.get_Nsct(
+                                      self.posi,
+                                      self.posiID,
+                                      snonl, Ysct,
+                                      Nsct_posi
+                                      )
 
             tmp_totnpe_per_event = Nsct_elec + electronResponse.get_Ncer(
-                self.d_elec, p0, p1, p2,
+                self.elec, p0, p1, p2,
                 E0) + Nsct_posi + electronResponse.get_Ncer(
-                    self.d_posi, p0, p1, p2, E0)
+                    self.posi, p0, p1, p2, E0)
 
         totnpe_per_event = np.sum(
             tmp_totnpe_per_event, axis=1) + np.count_nonzero(
