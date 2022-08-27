@@ -23,10 +23,12 @@ class electronResponse(object):
 
             for hname in fquenchNL._keys_lookup:
                 hquenchNL = fquenchNL[f"{hname}"]
-                gol.set_kB_value(hname, hquenchNL.to_numpy()[0])    
+                gol.set_kB_value(hname, hquenchNL.to_numpy()[0])
 
         except FileNotFoundError:
-            raise FileNotFoundError(f"Quenching nonlinearity file {quenchNL_file} dose not exist! The Fitter can not be executed furthermore :(")
+            raise FileNotFoundError(
+                f"Quenching nonlinearity file {quenchNL_file} dose not exist! The Fitter can not be executed furthermore :("
+            )
 
         # a nominal initial values
         electronResponse.quenchNL = gol.get_kB_value("kB65")
@@ -52,9 +54,11 @@ class electronResponse(object):
             nl = nonl[idE[x, y]]
             Nsct[x, y] = nl * Ysct * E[x, y]
 
-
     @staticmethod
-    @nb.guvectorize(["void(float64[:], int64[:], float64[:], float64, float64[:])"], "(n), (n), (l), ()->(n)", target="cuda")
+    @nb.guvectorize(
+        ["void(float64[:], int64[:], float64[:], float64, float64[:])"],
+        "(n), (n), (l), ()->(n)",
+        target="cuda")
     def get_Nsct(E, idE, nonl, Ysct, Nsct):
         """
         calculate scintillation photon number with numba
@@ -64,10 +68,10 @@ class electronResponse(object):
         for i in range(E.shape[0]):
             nl = nonl[idE[i]]
             Nsct[i] = nl * Ysct * E[i]
-    
 
     @staticmethod
-    @nb.vectorize([float64(float64, float64, float64, float64, float64)], target="cuda")
+    @nb.vectorize([float64(float64, float64, float64, float64, float64)],
+                  target="cuda")
     def get_Ncer(E, p0, p1, p2, E0):
         """
         calculate Cherenkov photon number
@@ -79,7 +83,6 @@ class electronResponse(object):
             return 0
         else:
             return p0 * E**2 / (E + p1 * math.exp(-p2 * E))
-
 
     @staticmethod
     @nb.vectorize([float64(float64, float64, float64, float64)], target="cuda")

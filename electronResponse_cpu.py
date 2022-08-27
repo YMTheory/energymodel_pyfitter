@@ -22,10 +22,12 @@ class electronResponse(object):
 
             for hname in fquenchNL._keys_lookup:
                 hquenchNL = fquenchNL[f"{hname}"]
-                gol.set_kB_value(hname, hquenchNL.to_numpy()[0])    
+                gol.set_kB_value(hname, hquenchNL.to_numpy()[0])
 
         except FileNotFoundError:
-            raise FileNotFoundError(f"Quenching nonlinearity file {quenchNL_file} dose not exist! The Fitter can not be executed furthermore :(")
+            raise FileNotFoundError(
+                f"Quenching nonlinearity file {quenchNL_file} dose not exist! The Fitter can not be executed furthermore :("
+            )
 
         # a nominal initial values
         electronResponse.quenchNL = gol.get_kB_value("kB65")
@@ -40,19 +42,21 @@ class electronResponse(object):
     def get_nonl():
         return electronResponse.quenchNL
 
-
     @staticmethod
-    @nb.guvectorize(["float64[:], int64[:], float64[:], float64, float64[:]"], "(n), (n), (m), ()->(n)", target="parallel", nopython=True)
+    @nb.guvectorize(["float64[:], int64[:], float64[:], float64, float64[:]"],
+                    "(n), (n), (m), ()->(n)",
+                    target="parallel",
+                    nopython=True)
     def get_Nsct(E, idE, nonl, Ysct, Nsct):
         for i in range(E.shape[0]):
             nl = nonl[idE[i]]
             Nsct[i] = nl * Ysct * E[i]
 
-
-
     @staticmethod
     #@profile
-    @nb.vectorize([float64(float64, float64, float64, float64, float64)], target="parallel", nopython=True)
+    @nb.vectorize([float64(float64, float64, float64, float64, float64)],
+                  target="parallel",
+                  nopython=True)
     def get_Ncer(E, p0, p1, p2, E0):
         """
         calculate Cherenkov photon number
@@ -65,12 +69,11 @@ class electronResponse(object):
         else:
             return p0 * E**2 / (E + p1 * math.exp(-p2 * E))
 
-
-
-
     @staticmethod
     # @np.vectorize
-    @nb.vectorize([float64(float64, float64, float64, float64)], target="parallel", nopython=True)
+    @nb.vectorize([float64(float64, float64, float64, float64)],
+                  target="parallel",
+                  nopython=True)
     def get_Nsigma(N, a, b, n):
         """
         calculate NPE sigma value

@@ -35,7 +35,3 @@ if __name__ == "__main__":
         #gam._plot()
 
     # f.fitter()
-
-
-
-

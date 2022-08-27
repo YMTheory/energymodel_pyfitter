@@ -111,18 +111,10 @@ class gamma(object):
             ## Use cuda jit
             Nsct_elec = np.zeros_like(self.elec)
             Nsct_posi = np.zeros_like(self.posi)
-            electronResponse.get_Nsct(
-                                      self.elec,
-                                      self.elecID,
-                                      snonl, Ysct,
-                                      Nsct_elec
-                                      )
-            electronResponse.get_Nsct(
-                                      self.posi,
-                                      self.posiID,
-                                      snonl, Ysct,
-                                      Nsct_posi
-                                      )
+            electronResponse.get_Nsct(self.elec, self.elecID, snonl, Ysct,
+                                      Nsct_elec)
+            electronResponse.get_Nsct(self.posi, self.posiID, snonl, Ysct,
+                                      Nsct_posi)
 
             tmp_totnpe_per_event = Nsct_elec + electronResponse.get_Ncer(
                 self.elec, p0, p1, p2,
