@@ -56,7 +56,7 @@ np.exp, np.sqrt methods are unsupported in CUDA, need to be replaced by math.exp
 
 - Updates: 修改了guvectorize，使得在cuda模式下可用，一个关键是需要确保所有输入的array的类型与signatures相一致，目前的做法是在input之前对array都做一个astype的强制类型转换。
   - 目前的结果是，在JUNO GPU集群上，使用cuda.jit装饰器或者用guvectorize(target="cuda")的速度差不多，都是大约80ms一次计算。
-
+  - nvprof python xxx 可以测试各个API的耗时。
 
 
 
