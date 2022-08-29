@@ -97,15 +97,25 @@ class gamma(object):
             """
             TPG = 32
             BPG = math.ceil(self.elec.shape[0] / TPG)
-            Nsct_elec = np.zeros_like(self.elec)
-            Nsct_posi = np.zeros_like(self.posi)
-            tmp_totnpe_per_event = electronResponse.get_Nsct(
-                self.d_elec, self.d_elecID, snonl,
-                Ysct, Nsct_elec) + electronResponse.get_Ncer(
-                    self.d_elec, p0, p1, p2, E0) + electronResponse.get_Nsct(
-                        self.d_posi, self.d_posiID, snonl, Ysct,
-                        Nsct_posi) + electronResponse.get_Ncer(
-                            self.d_posi, p0, p1, p2, E0)
+            #Nsct_elec = np.zeros_like(self.elec)
+            #Nsct_posi = np.zeros_like(self.posi)
+            #tmp_totnpe_per_event = electronResponse.get_Nsct(
+            #    self.d_elec, self.d_elecID, snonl,
+            #    Ysct, Nsct_elec) + electronResponse.get_Ncer(
+            #        self.d_elec, p0, p1, p2, E0) + electronResponse.get_Nsct(
+            #            self.d_posi, self.d_posiID, snonl, Ysct,
+            #            Nsct_posi) + electronResponse.get_Ncer(
+            #                self.d_posi, p0, p1, p2, E0)
+            
+            # initialize Nsct in device instead of host
+            M, N = self.elec.shape[0], self.elec.shape[1]
+            d_Nsct_elec = nb.cuda.device_array((M, N))
+            d_Nsct_posi = nb.cuda.device_array((M, N))
+            electronResponse.get_Nsct(self.d_elec, self.d_elecID, snonl, Ysct, d_Nsct_elec)
+            electronResponse.get_Nsct(self.d_posi, self.d_posiID, snonl, Ysct, d_Nsct_posi)
+            Nsct_elec = d_Nsct_elec.copy_to_host()
+            Nsct_posi = d_Nsct_posi.copy_to_host()
+            tmp_totnpe_per_event = Nsct_elec + electronResponse.get_Ncer(self.d_elec, p0, p1, p2, E0) + Nsct_posi + electronResponse.get_Ncer(self.d_posi, p0, p1, p2, E0)
 
         if gol.get_run_mode() == "cpu":
             ## Use cuda jit
