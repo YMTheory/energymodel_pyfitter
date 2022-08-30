@@ -54,6 +54,35 @@ class electronResponse(object):
             nl = nonl[idE[x, y]]
             Nsct[x, y] = nl * Ysct * E[x, y]
 
+    ## @staticmethod
+    ## @cuda.jit
+    ## def get_Nsct_cuda_sharedmem(E, idE, nonl, Nsct):
+    ##     """
+    ##     kernel function: CUDA jit compilation, using shared memory.
+    ##     """            
+    ##     # thread number in each block
+    ##     BLOCK_SIZE = 16
+    ##     ## allocate shared memory for the current block
+    ##     sE = cuda.shared.array(shape=(BLOCK_SIZE, BLOCK_SIZE), dtype=float64)
+    ##     sidE = cuda.shared.array(shape=(BLOCK_SIZE, BLOCK_SIZE), dtype=int32)
+    ##     ## relative position for the current thread in the block
+    ##     tx = cuda.threadIdx.x
+    ##     ty = cuda.threadIdx.y
+    ##     ## absolute position for the current thread
+    ##     row = tx + cuda.blockDim.x * cuda.blockIdx.x
+    ##     col = ty + cuda.blockDim.y * cuda.blockIdx.y
+    ##     
+    ##     if row > Nsct.shape[0] and col > Nsct.shape[1]:
+    ##         return
+    ##     
+    ##     for m in range(math.ceil(E.shape[0] / BLOCK_SIZE)):
+    ##         for n in range(math.ceil(E.shape[1] / BLOCK_SIZE)):
+    ##             sE[tx, ty] = E[tx + m * BLOCK_SIZE, ty + n * BLOCK_SIZE]
+    ##             sidE[tx, ty] = idE[tx + m * BLOCK_SIZE, ty + n * BLOCK_SIZE]
+    ##             cuda.syncthreads()
+            
+            
+
     @staticmethod
     @nb.guvectorize(
         ["void(float64[:], int64[:], float64[:], float64, float64[:])"],
