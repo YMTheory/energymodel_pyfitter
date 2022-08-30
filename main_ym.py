@@ -1,5 +1,6 @@
 # import fitter as f
 import parameters_ym as gol
+import parameters_cuda as gol_cuda
 from electronResponse_cuda import electronResponse
 #from electronResponse_cpu import electronResponse
 from gamma_source_ym import gamma
@@ -16,8 +17,7 @@ if __name__ == "__main__":
     ])
 
     er = electronResponse()
-
-    # er._compareTruth()
+    gol_cuda.copy_quenchNL_to_device()
 
     gamma_sources = []
     gamma_names = [
@@ -25,12 +25,14 @@ if __name__ == "__main__":
     ]
     gamma_E = [0.662, 0.835, 1.022, 1.461, 2.223, 2.506, 4.43, 4.94, 6.13]
     for name, E in zip(gamma_names, gamma_E):
+        #if name != "Cs137":
+        #    continue
         gamma_sources.append(gamma(name, E))
 
     for gam in gamma_sources:
         gam._calc()
-        #gam._calc()
-        #gam._calc()
+        gam._calc()
+        gam._calc()
         gam._print()
         #gam._plot()
 

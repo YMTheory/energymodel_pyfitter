@@ -10,6 +10,7 @@ import math
 #from electronResponse_cpu import electronResponse
 from electronResponse_cuda import electronResponse
 import parameters_ym as gol
+import parameters_cuda as gol_cuda
 
 
 class gamma(object):
@@ -88,8 +89,6 @@ class gamma(object):
         b = gol.get_fitpar_value("b")
         n = gol.get_fitpar_value("n")
         Y = gol.get_fitpar_value("Y")
-        electronResponse.update()
-        snonl = electronResponse.get_nonl()
 
         if gol.get_run_mode() == "cuda":
             """
@@ -108,6 +107,7 @@ class gamma(object):
             #                self.d_posi, p0, p1, p2, E0)
             
             # initialize Nsct in device instead of host
+            snonl = gol_cuda.get_device_quenchNL(kB)
             M, N = self.elec.shape[0], self.elec.shape[1]
             d_Nsct_elec = nb.cuda.device_array((M, N))
             d_Nsct_posi = nb.cuda.device_array((M, N))
@@ -118,6 +118,8 @@ class gamma(object):
             tmp_totnpe_per_event = Nsct_elec + electronResponse.get_Ncer(self.d_elec, p0, p1, p2, E0) + Nsct_posi + electronResponse.get_Ncer(self.d_posi, p0, p1, p2, E0)
 
         if gol.get_run_mode() == "cpu":
+            electronResponse.update()
+            snonl = electronResponse.get_nonl()
             ## Use cuda jit
             Nsct_elec = np.zeros_like(self.elec)
             Nsct_posi = np.zeros_like(self.posi)
