@@ -11,7 +11,7 @@
  - The _calc function for each source takes around 1.8s each time, and the figure displays the time profiles.
  - 可以看见主要的时间开销还是在vectorized的三个array计算上面。
 
-
+   
 ** Numba acceleration:
 Numba: nopython mode, just-in-time compilation. （普通python程序编译时候需要每一次将程序语言解释为机器语言，因此相对缓慢）;
 
@@ -57,10 +57,13 @@ np.exp, np.sqrt methods are unsupported in CUDA, need to be replaced by math.exp
 - Updates: 修改了guvectorize，使得在cuda模式下可用，一个关键是需要确保所有输入的array的类型与signatures相一致，目前的做法是在input之前对array都做一个astype的强制类型转换。
   - 目前的结果是，在JUNO GPU集群上，使用cuda.jit装饰器或者用guvectorize(target="cuda")的速度差不多，都是大约80ms一次计算。
   - nvprof python xxx 可以测试各个API的耗时。
+    测试时候发现Driver API: cuAddLinkData耗时似乎很多。
+  - 已经把quenching非线性曲线，以及Nsct的初始化都放到了device，时间没有进一步缩短，现在一个计算大约60ms左右。仍长于cpu parallel。
 
 
 
-
+*** 加入能谱拟合的部分：
+- 例如B12能谱，之前的做法是串行的，先用fine binning去加上能量响应，在smear到coarse binning，在python大约600ms一次ApplyResponse.
 *** Numba Manual:
 - In CUDA, the code you write will be executed by multiple threads at once (often hundreds or thousands). Your solution will be modeled by defining a thread hierarchy of grid, blocks and threads.
 - Kernel declaration:

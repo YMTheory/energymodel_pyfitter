@@ -1,4 +1,5 @@
-from electronResponse_plain import electronResponse
+from electronResponse_cpu import electronResponse
+# from electronResponse_plain import electronResponse
 import parameters_ym as glb
 
 import uproot as up
@@ -69,7 +70,7 @@ class BetaSpectrum:
         electronResponse.update()
         snonl = electronResponse.get_nonl()
 
-        self.m_evis = np.zeros(self.nE)
+        self.m_evis = np.zeros(self.nEvis)
         m_eTru = self.thist.view()
 
         for i in range(self.nE):
@@ -110,3 +111,73 @@ class BetaSpectrum:
                 color="black")
         #ax.plot(self.thist.axes[0].centers, self.thist.view()/self.thist.sum(), "-", lw=2, color="black")
         plt.show()
+
+
+    @timebudget
+    def ApplyResponse_cpu(self):
+        kB = glb.get_fitpar_value("kB")
+        Ysct = glb.get_fitpar_value("Ysct")
+        p0 = glb.get_fitpar_value("p0")
+        p1 = glb.get_fitpar_value("p1")
+        p2 = glb.get_fitpar_value("p2")
+        E0 = glb.get_fitpar_value("E0")
+        a = glb.get_fitpar_value("a")
+        b = glb.get_fitpar_value("b")
+        n = glb.get_fitpar_value("n")
+        Y = glb.get_fitpar_value("Y")
+
+        electronResponse.update()
+        snonl = electronResponse.get_nonl()
+
+        self.m_evis = np.zeros(self.nEvis)
+
+        # fine binning:
+        m_eTru  = self.thist.view()    ## content
+        m_cent  = self.thist.axes[0].centers
+        idE     = (m_cent * 1000).astype("int")
+        Nsct    = np.zeros_like(m_cent) 
+        m_npe   = electronResponse.get_Nsct(m_cent, idE, snonl, Ysct, Nsct) + electronResponse.get_Ncer(m_cent, p0, p1, p2, E0)
+        m_sigma = electronResponse.get_Nsigma(m_npe, a, b, n)
+
+        # need to loop for smearing: serial execution
+        for i in range(self.nE):
+            tmp_npe = m_npe[i]
+            tmp_sigma = m_sigma[i]
+            minEbin = int(((tmp_npe - 5 * tmp_sigma) / Y - self.Evismin) /
+                          self.EvisbinWidth)
+            maxEbin = int(((tmp_npe + 5 * tmp_sigma) / Y - self.Evismin) /
+                          self.EvisbinWidth)
+            for ilocbin in range(minEbin, maxEbin + 1):
+                if ilocbin < 0 or ilocbin >= self.nEvis:
+                    continue
+                tmp_E = self.Evismin + (ilocbin + 0.5) * self.EvisbinWidth
+                prob = norm.pdf(tmp_E, loc=tmp_npe / Y, scale=tmp_sigma)
+                self.m_evis[ilocbin] += prob * m_eTru[i]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

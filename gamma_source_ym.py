@@ -7,8 +7,8 @@ import numba as nb
 import math
 
 #from electronResponse_ym import electronResponse
-#from electronResponse_cpu import electronResponse
-from electronResponse_cuda import electronResponse
+from electronResponse_cpu import electronResponse
+# from electronResponse_cuda import electronResponse
 import parameters_ym as gol
 import parameters_cuda as gol_cuda
 
@@ -22,8 +22,8 @@ class gamma(object):
         self.name = name
         self.E = E
 
-        #filename = f"/Volumes/home/Data/EnergyModel/{name}_J19.root"
-        filename = f"../data/{name}_J19.root"
+        filename = f"/Volumes/home/Data/EnergyModel/{name}_J19.root"
+        #filename = f"../data/{name}_J19.root"
         print(f">>> Load Primary e+- Collections for {name}")
         ff = up.open(filename)
         gol.set_prm_value(f"{name}_elec", ff[f"{name}_elec"].to_numpy()[0])
@@ -33,8 +33,8 @@ class gamma(object):
         self.elecID = (self.elec * 1000).astype("int")
         self.posiID = (self.posi * 1000).astype("int")
 
-        #filename = f"/Volumes/home/Data/EnergyModel/{name}_new.root"
-        filename = f"../data/{name}_new.root"
+        filename = f"/Volumes/home/Data/EnergyModel/{name}_new.root"
+        # filename = f"../data/{name}_new.root"
         print(f">>> Load MC data for {name}")
         ff = up.open(filename)
         gol.set_npe_value(f"{name}", ff["photon"]["totPE"].array())
@@ -105,17 +105,22 @@ class gamma(object):
             #            self.d_posi, self.d_posiID, snonl, Ysct,
             #            Nsct_posi) + electronResponse.get_Ncer(
             #                self.d_posi, p0, p1, p2, E0)
-            
+
             # initialize Nsct in device instead of host
             snonl = gol_cuda.get_device_quenchNL(kB)
             M, N = self.elec.shape[0], self.elec.shape[1]
             d_Nsct_elec = nb.cuda.device_array((M, N))
             d_Nsct_posi = nb.cuda.device_array((M, N))
-            electronResponse.get_Nsct(self.d_elec, self.d_elecID, snonl, Ysct, d_Nsct_elec)
-            electronResponse.get_Nsct(self.d_posi, self.d_posiID, snonl, Ysct, d_Nsct_posi)
+            electronResponse.get_Nsct(self.d_elec, self.d_elecID, snonl, Ysct,
+                                      d_Nsct_elec)
+            electronResponse.get_Nsct(self.d_posi, self.d_posiID, snonl, Ysct,
+                                      d_Nsct_posi)
             Nsct_elec = d_Nsct_elec.copy_to_host()
             Nsct_posi = d_Nsct_posi.copy_to_host()
-            tmp_totnpe_per_event = Nsct_elec + electronResponse.get_Ncer(self.d_elec, p0, p1, p2, E0) + Nsct_posi + electronResponse.get_Ncer(self.d_posi, p0, p1, p2, E0)
+            tmp_totnpe_per_event = Nsct_elec + electronResponse.get_Ncer(
+                self.d_elec, p0, p1, p2,
+                E0) + Nsct_posi + electronResponse.get_Ncer(
+                    self.d_posi, p0, p1, p2, E0)
 
         if gol.get_run_mode() == "cpu":
             electronResponse.update()

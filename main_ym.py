@@ -2,7 +2,8 @@
 import parameters_ym as gol
 import parameters_cuda as gol_cuda
 # from electronResponse_cuda import electronResponse
-from electronResponse_cpu import electronResponse
+# from electronResponse_cpu import electronResponse
+from electronResponse_plain import electronResponse
 from gamma_source_ym import gamma
 from BetaSpectrum import BetaSpectrum
 
@@ -17,7 +18,7 @@ if __name__ == "__main__":
         1399.6, 1308.8, 38.067
     ])
 
-    er = electronResponse()
+    electronResponse()
     gol.set_run_mode("cpu")
     if gol.get_run_mode() == "cuda":
         gol_cuda.copy_quenchNL_to_device()
@@ -43,8 +44,10 @@ if __name__ == "__main__":
     # f.fitter()
     """
 
-    b12 = BetaSpectrum("B12", 1000, 0, 15, 100, 3, 12)
+    b12 = BetaSpectrum("B12", 1000, 0, 15, 80, 3, 12)
     b12._load_theo()
     b12._load_data()
+    # b12.ApplyResponse()
+    b12.ApplyResponse_cpu() 
 
-
+    # #b12._plot()
