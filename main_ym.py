@@ -1,9 +1,10 @@
 # import fitter as f
 import parameters_ym as gol
 import parameters_cuda as gol_cuda
-from electronResponse_cuda import electronResponse
-#from electronResponse_cpu import electronResponse
+# from electronResponse_cuda import electronResponse
+from electronResponse_cpu import electronResponse
 from gamma_source_ym import gamma
+from BetaSpectrum import BetaSpectrum
 
 if __name__ == "__main__":
 
@@ -17,8 +18,11 @@ if __name__ == "__main__":
     ])
 
     er = electronResponse()
-    gol_cuda.copy_quenchNL_to_device()
+    gol.set_run_mode("cpu")
+    if gol.get_run_mode() == "cuda":
+        gol_cuda.copy_quenchNL_to_device()
 
+    """
     gamma_sources = []
     gamma_names = [
         "Cs137", "Mn54", "Ge68", "K40", "nH", "Co60", "AmBe", "nC12", "AmC"
@@ -30,10 +34,17 @@ if __name__ == "__main__":
         gamma_sources.append(gamma(name, E))
 
     for gam in gamma_sources:
-        gam._calc()
-        gam._calc()
+        # gam._calc()
+        # gam._calc()
         gam._calc()
         gam._print()
         #gam._plot()
 
     # f.fitter()
+    """
+
+    b12 = BetaSpectrum("B12", 1000, 0, 15, 100, 3, 12)
+    b12._load_theo()
+    b12._load_data()
+
+
