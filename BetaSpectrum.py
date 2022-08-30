@@ -4,6 +4,8 @@ import parameters_ym as glb
 import uproot as up
 import boost_histogram as bh
 import numpy as np
+from scipy.stats import norm
+from timebudget import timebudget
 
 
 class BetaSpectrum:
@@ -15,12 +17,17 @@ class BetaSpectrum:
         self.Emin = Emin
         self.Emax = Emax
         self.nE = nE
+        self.EbinWidth = (Emax - Emin) / nE
         self.Evismin = Evismin
         self.Evismax = Evismax
         self.nEvis = nEvis
+        self.EvisbinWidth = (Evismax - Evismin) / nEvis
 
         self.dhist = bh.Histogram(bh.axis.Regular(nEvis, Evismin, Evismax))
         self.thist = bh.Histogram(bh.axis.Regular(nE, Emin, Emax))
+        self.phist = bh.Histogram(bh.axis.Regular(nEvis, Evismin, Evismax))
+
+        self.m_evis = np.zeros(self.nEvis)
 
     def _load_theo(self):
         try:
@@ -45,6 +52,7 @@ class BetaSpectrum:
             )
             raise FileExistsError
 
+    @timebudget
     def ApplyResponse(self):
 
         kB = glb.get_fitpar_value("kB")
@@ -61,7 +69,9 @@ class BetaSpectrum:
         electronResponse.update()
         snonl = electronResponse.get_nonl()
 
-        m_evis = np.zeros(self.nE)
+        self.m_evis = np.zeros(self.nE)
+        m_eTru = self.thist.view()
+
         for i in range(self.nE):
             eTrue = self.thist.axes[0].centers[i]
             eTrueID = int(eTrue * 1000)
@@ -69,3 +79,34 @@ class BetaSpectrum:
                 eTrue, eTrueID, snonl, Ysct) + electronResponse.get_Ncer(
                     eTrue, p0, p1, p2, E0)
             tmp_sigma = electronResponse.get_Nsigma(tmp_npe, a, b, n)
+
+            ### Smearing with energy resolution
+            minEbin = int(((tmp_npe - 5 * tmp_sigma) / Y - self.Evismin) /
+                          self.EvisbinWidth)
+            maxEbin = int(((tmp_npe + 5 * tmp_sigma) / Y - self.Evismin) /
+                          self.EvisbinWidth)
+            for ilocbin in range(minEbin, maxEbin + 1):
+                if ilocbin < 0 or ilocbin > self.nEvis:
+                    continue
+                tmp_E = self.Evismin + (ilocbin + 0.5) * self.EvisbinWidth
+                prob = norm.pdf(tmp_E, loc=tmp_npe / Y, scale=tmp_sigma)
+                self.m_evis[ilocbin] += prob * m_eTru[i]
+
+    def _plot(self):
+        import matplotlib.pyplot as plt
+        for i in range(self.nEvis):
+            self.phist[i] = self.m_evis[i]
+
+        fig, ax = plt.subplots()
+        ax.plot(self.dhist.axes[0].centers,
+                self.dhist.view() / self.dhist.sum(),
+                "o",
+                ms=4,
+                color="red")
+        ax.plot(self.phist.axes[0].centers,
+                self.phist.view() / self.phist.sum(),
+                "-",
+                lw=2,
+                color="black")
+        #ax.plot(self.thist.axes[0].centers, self.thist.view()/self.thist.sum(), "-", lw=2, color="black")
+        plt.show()
