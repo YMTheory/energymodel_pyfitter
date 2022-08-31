@@ -5,7 +5,10 @@ import parameters_cuda as gol_cuda
 # from electronResponse_cpu import electronResponse
 from electronResponse_plain import electronResponse
 from gamma_source_ym import gamma
-from BetaSpectrum import BetaSpectrum
+from BetaSpectrum import BetaSpectrum, GenericLeastSquares, BetterLeastSquares 
+import fitter as f
+
+from iminuit import Minuit
 
 if __name__ == "__main__":
 
@@ -41,13 +44,28 @@ if __name__ == "__main__":
         gam._print()
         #gam._plot()
 
-    # f.fitter()
     """
 
-    b12 = BetaSpectrum("B12", 1000, 0, 15, 80, 3, 12)
-    b12._load_theo()
-    b12._load_data()
-    # b12.ApplyResponse()
-    b12.ApplyResponse_cpu() 
+    # f.fitter()
 
-    # #b12._plot()
+
+    b12 = BetaSpectrum("B12", 1000, 0, 15, 80, 3, 12)
+    b12._load_data()
+    b12._load_theo()
+    dataX = b12.get_dataX()
+    dataY = b12.get_dataY()
+    dataYe = b12.get_dataYe()
+    ## lf += cost.LeastSquares(dataX, dataY, dataYe, b12._pdf)
+    lsq = BetterLeastSquares(b12._pdf, dataX, dataY, dataYe)
+
+    try:
+        m = Minuit(lsq, kB=5.7e-3, Ysct=1400, p0=91, p1=0.5, p2=0.2, E0=0.2, a=0.98, b=0.05, n=1.62)
+        m.errordef = Minuit.LEAST_SQUARES
+        m.migrad()
+        m.hesse()
+        print(m.fval)
+    except:
+        import traceback
+        traceback.print_exc()
+
+
