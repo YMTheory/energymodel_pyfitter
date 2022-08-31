@@ -1,3 +1,4 @@
+#from electronResponse_cuda import electronResponse
 from electronResponse_cpu import electronResponse
 # from electronResponse_plain import electronResponse
 import parameters_ym as glb
@@ -6,15 +7,19 @@ import uproot as up
 import boost_histogram as bh
 import numpy as np
 from scipy.stats import norm
+from scipy import signal
 from timebudget import timebudget
-
+import numba as nb
+import math
 
 class BetaSpectrum:
 
     def __init__(self, name, nE, Emin, Emax, nEvis, Evismin, Evismax):
         self.name = name
-        self.dfile = f"/Volumes/home/Data/EnergyModel/{name}_data.root"
-        self.tfile = f"/Volumes/home/Data/EnergyModel/{name}_theo.root"
+        self.dfile = f"../data/{name}_data.root"
+        self.tfile = f"../data/{name}_theo.root"
+        # self.dfile = f"/Volumes/home/Data/EnergyModel/{name}_data.root"
+        # self.tfile = f"/Volumes/home/Data/EnergyModel/{name}_theo.root"
         self.Emin = Emin
         self.Emax = Emax
         self.nE = nE
@@ -139,34 +144,34 @@ class BetaSpectrum:
         m_npe   = electronResponse.get_Nsct(m_cent, idE, snonl, Ysct, Nsct) + electronResponse.get_Ncer(m_cent, p0, p1, p2, E0)
         m_sigma = electronResponse.get_Nsigma(m_npe, a, b, n)
 
-        # need to loop for smearing: serial execution
-        for i in range(self.nE):
+        self.m_evis = BetaSpectrum.smear(Y, self.Evismin, self.EvisbinWidth, m_npe, m_sigma, m_eTru, self.m_evis)
+
+
+    @timebudget
+    @staticmethod
+    @nb.njit
+    def smear(Y, Evismin, EvisbinWidth, m_npe, m_sigma, m_eTru, m_evis):
+        PI = 3.141592653
+        for i in range(len(m_npe)):
             tmp_npe = m_npe[i]
             tmp_sigma = m_sigma[i]
-            minEbin = int(((tmp_npe - 5 * tmp_sigma) / Y - self.Evismin) /
-                          self.EvisbinWidth)
-            maxEbin = int(((tmp_npe + 5 * tmp_sigma) / Y - self.Evismin) /
-                          self.EvisbinWidth)
+            minEbin = int(((tmp_npe - 5 * tmp_sigma) / Y - Evismin) /
+                          EvisbinWidth)
+            maxEbin = int(((tmp_npe + 5 * tmp_sigma) / Y - Evismin) /
+                          EvisbinWidth)
             for ilocbin in range(minEbin, maxEbin + 1):
-                if ilocbin < 0 or ilocbin >= self.nEvis:
+                if ilocbin < 0 or ilocbin >= len(m_evis):
                     continue
-                tmp_E = self.Evismin + (ilocbin + 0.5) * self.EvisbinWidth
-                prob = norm.pdf(tmp_E, loc=tmp_npe / Y, scale=tmp_sigma)
-                self.m_evis[ilocbin] += prob * m_eTru[i]
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+                tmp_E = Evismin + (ilocbin + 0.5) * EvisbinWidth
+                #prob = norm.pdf(tmp_E, loc=tmp_npe / Y, scale=tmp_sigma)
+                prob = 1 / (math.sqrt(2*PI) * tmp_sigma) * math.exp(-(tmp_E - tmp_npe/Y)**2/2/tmp_sigma**2)
+                m_evis[ilocbin] += prob * m_eTru[i]
+        return m_evis 
+    
+    def _chi2(self):
+        chi2 = 0
+        m_data = dhist.view()
+        m_pred = phist.view()
 
 
 
