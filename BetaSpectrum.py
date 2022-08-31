@@ -36,6 +36,7 @@ class BetaSpectrum:
         self.m_bin_center = np.zeros(self.nEvis)
         self.m_data_content = np.zeros(self.nEvis)
         self.m_pred_content = np.zeros(self.nEvis)
+        self.m_data = None
 
     def _load_theo(self):
         try:
@@ -53,8 +54,9 @@ class BetaSpectrum:
         try:
             f = up.open(self.dfile)
             arr = f[self.name]["totpe"].array()
+            self.m_data = arr
             self.dhist.fill(arr / glb.get_fitpar_value("Y"))
-            self.m_bin_center = self.dhist
+            self.m_bin_center = self.dhist.axes[0].centers
             self.m_data_content = self.dhist.view()
             print(f">>> Load {self.name} data file.")
 
@@ -131,7 +133,7 @@ class BetaSpectrum:
         #ax.plot(self.thist.axes[0].centers, self.thist.view()/self.thist.sum(), "-", lw=2, color="black")
         plt.show()
 
-    @timebudget
+    #@timebudget
     def ApplyResponse_cpu(self):
         kB = glb.get_fitpar_value("kB")
         Ysct = glb.get_fitpar_value("Ysct")

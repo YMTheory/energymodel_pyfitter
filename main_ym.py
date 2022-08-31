@@ -8,7 +8,7 @@ from gamma_source_ym import gamma
 from BetaSpectrum import BetaSpectrum, GenericLeastSquares, BetterLeastSquares 
 import fitter as f
 
-from iminuit import Minuit
+from iminuit import Minuit, cost
 
 if __name__ == "__main__":
 
@@ -46,26 +46,15 @@ if __name__ == "__main__":
 
     """
 
-    # f.fitter()
+    f.fitter()
 
 
-    b12 = BetaSpectrum("B12", 1000, 0, 15, 80, 3, 12)
-    b12._load_data()
-    b12._load_theo()
-    dataX = b12.get_dataX()
-    dataY = b12.get_dataY()
-    dataYe = b12.get_dataYe()
-    ## lf += cost.LeastSquares(dataX, dataY, dataYe, b12._pdf)
-    lsq = BetterLeastSquares(b12._pdf, dataX, dataY, dataYe)
-
-    try:
-        m = Minuit(lsq, kB=5.7e-3, Ysct=1400, p0=91, p1=0.5, p2=0.2, E0=0.2, a=0.98, b=0.05, n=1.62)
-        m.errordef = Minuit.LEAST_SQUARES
-        m.migrad()
-        m.hesse()
-        print(m.fval)
-    except:
-        import traceback
-        traceback.print_exc()
+    # b12 = BetaSpectrum("B12", 1000, 0, 15, 80, 3, 12)
+    # b12._load_data()
+    # b12._load_theo()
+    # lf = cost.UnbinnedNLL(b12.m_data, b12._pdf)
+    # m = Minuit(lf, kB=5.7e-3, Ysct=1400, p0=91, p1=0.5, p2=0.2, E0=0.2, a=0.98, b=0.05, n=1.62)
+    # m.migrad()
+    # m.hesse()
 
 
