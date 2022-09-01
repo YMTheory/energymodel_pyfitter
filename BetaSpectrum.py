@@ -16,10 +16,12 @@ class BetaSpectrum:
 
     def __init__(self, name, nE, Emin, Emax, nEvis, Evismin, Evismax):
         self.name = name
-        # self.dfile = f"../data/{name}_data.root"
-        # self.tfile = f"../data/{name}_theo.root"
-        self.dfile = f"/Volumes/home/Data/EnergyModel/{name}_data.root"
-        self.tfile = f"/Volumes/home/Data/EnergyModel/{name}_theo.root"
+        if glb.get_server_name() == "ihep":
+            self.dfile = f"../data/{name}_data.root"
+            self.tfile = f"../data/{name}_theo.root"
+        elif glb.get_server_name() == "local":
+            self.dfile = f"/Volumes/home/Data/EnergyModel/{name}_data.root"
+            self.tfile = f"/Volumes/home/Data/EnergyModel/{name}_theo.root"
         self.Emin = Emin
         self.Emax = Emax
         self.nE = nE
@@ -197,6 +199,7 @@ class BetaSpectrum:
                 m_cont[ilocbin] += prob * m_theo_content[i]
         return m_cont
 
+    @timebudget
     def _pdf(self, x, kB, Ysct, p0, p1, p2, E0, a, b, n):
         """ Gaussian PDF for NPE distribution """
         glb.set_fitpar_value("kB", kB)

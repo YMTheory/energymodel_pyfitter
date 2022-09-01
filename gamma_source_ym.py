@@ -1,3 +1,4 @@
+import time
 import numpy as np
 from timebudget import timebudget
 import uproot as up
@@ -22,8 +23,10 @@ class gamma(object):
         self.name = name
         self.E = E
 
-        filename = f"/Volumes/home/Data/EnergyModel/{name}_J19.root"
-        #filename = f"../data/{name}_J19.root"
+        if gol.get_server_name() == "local":
+            filename = f"/Volumes/home/Data/EnergyModel/{name}_J19.root"
+        elif gol.get_server_name() == "ihep":
+            filename = f"../data/{name}_J19.root"
         print(f">>> Load Primary e+- Collections for {name}")
         ff = up.open(filename)
         gol.set_prm_value(f"{name}_elec", ff[f"{name}_elec"].to_numpy()[0])
@@ -33,8 +36,10 @@ class gamma(object):
         self.elecID = (self.elec * 1000).astype("int")
         self.posiID = (self.posi * 1000).astype("int")
 
-        filename = f"/Volumes/home/Data/EnergyModel/{name}_new.root"
-        # filename = f"../data/{name}_new.root"
+        if gol.get_server_name() == "local":
+            filename = f"/Volumes/home/Data/EnergyModel/{name}_new.root"
+        elif gol.get_server_name() == "ihep":
+            filename = f"../data/{name}_new.root"
         print(f">>> Load MC data for {name}")
         ff = up.open(filename)
         gol.set_npe_value(f"{name}", ff["photon"]["totPE"].array())
@@ -71,7 +76,7 @@ class gamma(object):
     def get_pred_sigma(self):
         return self.pred_sigma
 
-    #@timebudget
+    @timebudget
     #@profile
     def _calc(self):
         """

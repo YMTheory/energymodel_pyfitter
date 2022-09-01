@@ -15,8 +15,10 @@ class electronResponse(object):
         gol.set_run_mode("cpu")
 
         print("------ Initialzed electron response -----")
-        quenchNL_file = "/Volumes/home/Data/EnergyModel/Quench_NumInt.root"
-        # quenchNL_file = "/hpcfs/juno/junogpu/miaoyu/energy_model/data/Quench_NumInt.root"
+        if gol.get_server_name() == "local":
+            quenchNL_file = "/Volumes/home/Data/EnergyModel/Quench_NumInt.root"
+        if gol.get_server_name() == "ihep": 
+            quenchNL_file = "/hpcfs/juno/junogpu/miaoyu/energy_model/data/Quench_NumInt.root"
         try:
             fquenchNL = up.open(quenchNL_file)
 

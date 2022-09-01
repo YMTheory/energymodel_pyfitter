@@ -25,6 +25,9 @@ _fit_gam_flag = True
 global _fit_B12_flag
 _fit_B12_flag = True
 
+global _server_name
+_server_name = "local"
+
 
 def get_fitpar_value(key):
     """
@@ -154,6 +157,22 @@ def set_fit_B12_flag(val):
 
 def get_fit_B12_flag():
     return _fit_B12_flag
+
+
+def set_server_name(val):
+    """
+    Set server name (file directory).
+    """
+    assert (val == "local" or val == "ihep"), "Wrong server name argument, options are local or ihep"
+    global _server_name
+    _server_name = val
+
+
+def get_server_name():
+    """
+    return server name.
+    """
+    return _server_name
 
 
 def set_fitpar_value_ingroup(keys, vals):

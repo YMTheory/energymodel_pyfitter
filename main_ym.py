@@ -5,7 +5,15 @@ from electronResponse_cpu import electronResponse
 # from electronResponse_plain import electronResponse
 import fitter as f
 
+import sys
+
 if __name__ == "__main__":
+
+    for i in range(len(sys.argv)):
+        arg = sys.argv[i]
+        if arg == "-server_name":
+            gol.set_server_name(sys.argv[i+1])
+            print(f"Current server name: {sys.argv[i+1]}")
 
     # initialize fitting parameters
     gol.set_fitpar_value_ingroup([
@@ -22,6 +30,6 @@ if __name__ == "__main__":
         gol_cuda.copy_quenchNL_to_device()
 
     gol.set_fit_gam_flag(True)
-    gol.set_fit_B12_flag(False)
+    gol.set_fit_B12_flag(True)
 
     f.fitter()
