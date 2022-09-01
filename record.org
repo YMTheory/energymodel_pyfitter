@@ -65,6 +65,7 @@ np.exp, np.sqrt methods are unsupported in CUDA, need to be replaced by math.exp
 *** 加入能谱拟合的部分：
 - 例如B12能谱，之前的做法是串行的，先用fine binning去加上能量响应，在smear到coarse binning，在python大约600ms一次ApplyResponse.
 - combined NLL 后，似乎在conda juno环境上可以跑通，但在pyvenv my_env环境里会有奇怪报错。。
+- 经过比较两个版本，发现my_env下，numpy=1.22的interp函数返回值为None从而引起报错。然而升级后发现，numba=0.56.1只支持<=1.22的numpy。因此将numba降级为0.53后可以使用。
 *** Numba Manual:
 - In CUDA, the code you write will be executed by multiple threads at once (often hundreds or thousands). Your solution will be modeled by defining a thread hierarchy of grid, blocks and threads.
 - Kernel declaration:
