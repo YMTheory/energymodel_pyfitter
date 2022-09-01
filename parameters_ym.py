@@ -19,6 +19,13 @@ global _quenchE
 global _run_mode
 _run_mode = "cpu"
 
+global _fit_gam_flag
+_fit_gam_flag = True
+
+global _fit_B12_flag
+_fit_B12_flag = True
+
+
 def get_fitpar_value(key):
     """
     get value of fitpar with key word key
@@ -110,8 +117,8 @@ def set_run_mode(mode):
     """
     Set run mode (options: normal, vec, cuda)
     """
-    assert (mode == "cpu" or mode == "cuda"
-            ), "Wrong run_mode inputs, options are only cpu and cuda"
+    assert (mode == "cpu" or mode
+            == "cuda"), "Wrong run_mode inputs, options are only cpu and cuda"
     global _run_mode
     _run_mode = mode
 
@@ -121,6 +128,32 @@ def get_run_mode():
     return the _run_mode
     """
     return _run_mode
+
+
+def set_fit_gam_flag(val):
+    """
+    Set fit_gam_flag.
+    """
+    assert isinstance(val, bool), "Wrong flag type, must be boolean."
+    global _fit_gam_flag
+    _fit_gam_flag = val
+
+
+def get_fit_gam_flag():
+    return _fit_gam_flag
+
+
+def set_fit_B12_flag(val):
+    """
+    Set fit_B12_flag.
+    """
+    assert isinstance(val, bool), "Wrong flag type, must be boolean."
+    global _fit_B12_flag
+    _fit_B12_flag = val
+
+
+def get_fit_B12_flag():
+    return _fit_B12_flag
 
 
 def set_fitpar_value_ingroup(keys, vals):

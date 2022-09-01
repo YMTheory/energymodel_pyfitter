@@ -21,4 +21,7 @@ if __name__ == "__main__":
     if gol.get_run_mode() == "cuda":
         gol_cuda.copy_quenchNL_to_device()
 
+    gol.set_fit_gam_flag(True)
+    gol.set_fit_B12_flag(False)
+
     f.fitter()
