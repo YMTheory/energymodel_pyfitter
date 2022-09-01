@@ -18,6 +18,28 @@ Numba: nopython mode, just-in-time compilation. （普通python程序编译时�
 - Numba编译需要确定的数据类型，否则将退化回普通的解释型运行
 - 尝试对大量numpy计算的部分进行优化。
 
+*** Numba Manual:
+- In CUDA, the code you write will be executed by multiple threads at once (often hundreds or thousands). Your solution will be modeled by defining a thread hierarchy of grid, blocks and threads.
+- Kernel declaration:
+- 不显示返回结果，只是讲结果写入到传入的列表里。需要在内部定义线程等级，thread blocks的个数以及每个block中thread的个数；
+  #+BEGIN_SRC python
+    @cuda.jit
+    def increment_by_one(an_array):
+    # Increment all elements in an array...
+  #+END_SRC   
+
+  
+And a kernel is launched by,
+#+BEGIN_SRC python
+threadsperblock = 32
+blockspergrid = (an_array.size + (threadsperblock - 1)) // threadsperblock
+increment_by_one[blockspergrid, threadsperblock](an_array)
+#+END_SRC
+
+- Running the kernel, by passing it the input array (and any separate output arrays if necessary). By default, running a kernel is synchronous: the function returns when the kernel has finished executing and the data is synchronized back.
+- Numba can transfer numpy array to the device conservatively when a kernel is finished;
+
+
 
 *** Try to use numba.vectorize / nb.guvectorize method...
 - 尝试将计算闪烁光子个数，切伦科夫光子个数以及光子数涨落的函数进行vectorize；
@@ -66,25 +88,10 @@ np.exp, np.sqrt methods are unsupported in CUDA, need to be replaced by math.exp
 - 例如B12能谱，之前的做法是串行的，先用fine binning去加上能量响应，在smear到coarse binning，在python大约600ms一次ApplyResponse.
 - combined NLL 后，似乎在conda juno环境上可以跑通，但在pyvenv my_env环境里会有奇怪报错。。
 - 经过比较两个版本，发现my_env下，numpy=1.22的interp函数返回值为None从而引起报错。然而升级后发现，numba=0.56.1只支持<=1.22的numpy。因此将numba降级为0.53后可以使用。
-*** Numba Manual:
-- In CUDA, the code you write will be executed by multiple threads at once (often hundreds or thousands). Your solution will be modeled by defining a thread hierarchy of grid, blocks and threads.
-- Kernel declaration:
-- 不显示返回结果，只是讲结果写入到传入的列表里。需要在内部定义线程等级，thread blocks的个数以及每个block中thread的个数；
-  #+BEGIN_SRC python
-    @cuda.jit
-    def increment_by_one(an_array):
-    # Increment all elements in an array...
-  #+END_SRC   
 
-  
-And a kernel is launched by,
-#+BEGIN_SRC python
-threadsperblock = 32
-blockspergrid = (an_array.size + (threadsperblock - 1)) // threadsperblock
-increment_by_one[blockspergrid, threadsperblock](an_array)
-#+END_SRC
+*** 拟合效果
+- 目前无论是利用nll(gamma)+nll(B12) 或 nll(gamma) + lsq(B12)的结果都可以跑通，但是极小化结果不好，EDM = 1.07e+08 (Goal: 0.0002)，似乎并没有正确收敛，参数的误差也非常非常小。
 
-- Running the kernel, by passing it the input array (and any separate output arrays if necessary). By default, running a kernel is synchronous: the function returns when the kernel has finished executing and the data is synchronized back.
-- Numba can transfer numpy array to the device conservatively when a kernel is finished;
+
 
 

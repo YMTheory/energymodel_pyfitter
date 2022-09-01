@@ -71,7 +71,7 @@ class gamma(object):
     def get_pred_sigma(self):
         return self.pred_sigma
 
-    @timebudget
+    #@timebudget
     #@profile
     def _calc(self):
         """
@@ -156,9 +156,9 @@ class gamma(object):
         # print(f"__predicted npe sigma {pred_npe_sigma}")
 
         self.pred_mu, self.pred_sigma = pred_npe_mean, pred_npe_sigma
-        print(
-            f"{self.name}: __pred_mu = {self.pred_mu}, __pred_sigam = {self.pred_sigma}"
-        )
+        # print(
+        #     f"{self.name}: __pred_mu = {self.pred_mu}, __pred_sigam = {self.pred_sigma}"
+        # )
         return pred_npe_mean, pred_npe_sigma
 
     def _pdf(self, x, kB, Ysct, p0, p1, p2, E0, a, b, n):
@@ -197,4 +197,4 @@ class gamma(object):
         ax.set_xlabel(r"$E_\mathrm{vis}$ [MeV]", fontsize=14)
         ax.set_ylabel("counts", fontsize=14)
         ax.set_title(f"{self.name}, E = {self.E} MeV", fontsize=14)
-        plt.savefig(f"{self.name}.pdf")
+        plt.savefig(f"./figures/{self.name}.pdf")

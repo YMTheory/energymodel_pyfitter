@@ -75,6 +75,9 @@ class BetaSpectrum:
     def get_dataYe(self):
         return np.sqrt(self.m_data_content)
 
+    def get_full_data(self):
+        return self.m_data
+
     @timebudget
     def ApplyResponse(self):
 
@@ -112,30 +115,33 @@ class BetaSpectrum:
                     continue
                 tmp_E = self.Evismin + (ilocbin + 0.5) * self.EvisbinWidth
                 prob = norm.pdf(tmp_E, loc=tmp_npe / Y, scale=tmp_sigma)
-                self.m_evis[ilocbin] += prob * m_eTru[i]
+                self.m_pred_content[ilocbin] += prob * m_eTru[i]
 
     def _plot(self):
         import matplotlib.pyplot as plt
         for i in range(self.nEvis):
-            self.phist[i] = self.m_evis[i]
+            self.phist[i] = self.m_pred_content[i]
 
         fig, ax = plt.subplots()
         ax.plot(self.dhist.axes[0].centers,
-                self.dhist.view() / self.dhist.sum(),
+                self.dhist.view(),
                 "o",
                 ms=4,
-                color="red")
+                color="red",
+                label="Simulation")
         ax.plot(self.phist.axes[0].centers,
-                self.phist.view() / self.phist.sum(),
+                self.phist.view(),
                 "-",
                 lw=2,
-                color="black")
-        #ax.plot(self.thist.axes[0].centers, self.thist.view()/self.thist.sum(), "-", lw=2, color="black")
-        plt.show()
+                color="black",
+                label="Best fit")
+        ax.set_xlabel(r"$E_\mathrm{vis}$ [MeV]", fontsize=14)
+        ax.set_ylabel("count", fontsize=14)
+        ax.legend(prop={"size": 14})
+        plt.savefig(f"./figures/{self.name}.pdf")
 
     #@timebudget
     def ApplyResponse_cpu(self):
-        kB = glb.get_fitpar_value("kB")
         Ysct = glb.get_fitpar_value("Ysct")
         p0 = glb.get_fitpar_value("p0")
         p1 = glb.get_fitpar_value("p1")
@@ -166,11 +172,11 @@ class BetaSpectrum:
         ## Normalization:
         sum_data = np.sum(self.m_data_content)
         sum_pred = np.sum(self.m_pred_content)
-        self.m_pred_content / sum_pred * sum_data
+        self.m_pred_content = self.m_pred_content / sum_pred * sum_data
 
     #@timebudget
     @staticmethod
-    @nb.njit
+    #@nb.njit
     def smear(Y, Evismin, EvisbinWidth, nEvis, m_npe, m_sigma, m_theo_content):
         PI = 3.141592653
         m_cont = np.zeros(nEvis)
@@ -206,70 +212,44 @@ class BetaSpectrum:
         self.ApplyResponse_cpu()
 
         return np.interp(x, self.m_bin_center, self.m_pred_content)
-        # ibin = int((x - self.Evismin)/self.EvisbinWidth)
-        # return self.m_pred_content[ibin]
 
-    def _chi2(self):
-        self.ApplyResponse_cpu()
+    ###def _chi2(self):
+    ###    self.ApplyResponse_cpu()
 
-        m_data = self.dhist.view()
-        m_pred = self.phist.view()
-        masked = np.ma.masked_values(m_data, 0).data
-        mask_data = masked.data
-        mask = masked.mask
-        mask_pred = np.ma.masked_array(m_pred, mask)
+    ###    m_data = self.dhist.view()
+    ###    m_pred = self.phist.view()
+    ###    masked = np.ma.masked_values(m_data, 0).data
+    ###    mask_data = masked.data
+    ###    mask = masked.mask
+    ###    mask_pred = np.ma.masked_array(m_pred, mask)
 
-        chi2 = np.sum((mask_pred - mask_data)**2 / mask_data)
-        return chi2
+    ###    chi2 = np.sum((mask_pred - mask_data)**2 / mask_data)
+    ###    return chi2
 
 
-
-
-from iminuit import Minuit
-from iminuit.util import describe
-from iminuit.util import make_func_code
-
-class GenericLeastSquares:
-    """
-    Generic least-square cost function with errors.
-    """
-    errordef = Minuit.LEAST_SQUARES
-
-    def __init__(self, model, x, y, yerr):
-        self.model = model  # model predicts y for given x
-        self.x = np.asarray(x)
-        self.y = np.asarray(y)
-        self.err = np.asarray(yerr)
-
-    def __call__(self, *par):
-        ym = np.zeros(len(self.y))
-        for ix in range(len(self.x)):
-            ym[ix] = self.model(self.x[ix], *par)
-        return np.sum((self.y - ym) ** 2 / self.err ** 2)
-
-class BetterLeastSquares(GenericLeastSquares):
-    def __init__(self, model, x, y, yerr):
-        super().__init__(model, x, y, yerr)
-        self.func_code = make_func_code(describe(model)[1:])
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+###from iminuit import Minuit
+###from iminuit.util import describe
+###from iminuit.util import make_func_code
+###
+###class GenericLeastSquares:
+###    """
+###    Generic least-square cost function with errors.
+###    """
+###    errordef = Minuit.LEAST_SQUARES
+###
+###    def __init__(self, model, x, y, yerr):
+###        self.model = model  # model predicts y for given x
+###        self.x = np.asarray(x)
+###        self.y = np.asarray(y)
+###        self.err = np.asarray(yerr)
+###
+###    def __call__(self, *par):
+###        ym = np.zeros(len(self.y))
+###        for ix in range(len(self.x)):
+###            ym[ix] = self.model(self.x[ix], *par)
+###        return np.sum((self.y - ym) ** 2 / self.err ** 2)
+###
+###class BetterLeastSquares(GenericLeastSquares):
+###    def __init__(self, model, x, y, yerr):
+###        super().__init__(model, x, y, yerr)
+###        self.func_code = make_func_code(describe(model)[1:])

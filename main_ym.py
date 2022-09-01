@@ -1,14 +1,9 @@
-# import fitter as f
 import parameters_ym as gol
 import parameters_cuda as gol_cuda
 # from electronResponse_cuda import electronResponse
-# from electronResponse_cpu import electronResponse
-from electronResponse_plain import electronResponse
-from gamma_source_ym import gamma
-from BetaSpectrum import BetaSpectrum, GenericLeastSquares, BetterLeastSquares 
+from electronResponse_cpu import electronResponse
+# from electronResponse_plain import electronResponse
 import fitter as f
-
-from iminuit import Minuit, cost
 
 if __name__ == "__main__":
 
@@ -26,35 +21,4 @@ if __name__ == "__main__":
     if gol.get_run_mode() == "cuda":
         gol_cuda.copy_quenchNL_to_device()
 
-    """
-    gamma_sources = []
-    gamma_names = [
-        "Cs137", "Mn54", "Ge68", "K40", "nH", "Co60", "AmBe", "nC12", "AmC"
-    ]
-    gamma_E = [0.662, 0.835, 1.022, 1.461, 2.223, 2.506, 4.43, 4.94, 6.13]
-    for name, E in zip(gamma_names, gamma_E):
-        #if name != "Cs137":
-        #    continue
-        gamma_sources.append(gamma(name, E))
-
-    for gam in gamma_sources:
-        # gam._calc()
-        # gam._calc()
-        gam._calc()
-        gam._print()
-        #gam._plot()
-
-    """
-
     f.fitter()
-
-
-    # b12 = BetaSpectrum("B12", 1000, 0, 15, 80, 3, 12)
-    # b12._load_data()
-    # b12._load_theo()
-    # lf = cost.UnbinnedNLL(b12.m_data, b12._pdf)
-    # m = Minuit(lf, kB=5.7e-3, Ysct=1400, p0=91, p1=0.5, p2=0.2, E0=0.2, a=0.98, b=0.05, n=1.62)
-    # m.migrad()
-    # m.hesse()
-
-

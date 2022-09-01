@@ -3,7 +3,7 @@ from timebudget import timebudget
 
 import parameters_ym as gol
 from gamma_source_ym import gamma
-from BetaSpectrum import BetaSpectrum, GenericLeastSquares, BetterLeastSquares
+from BetaSpectrum import BetaSpectrum 
 
 @timebudget
 def fitter():
@@ -31,13 +31,16 @@ def fitter():
     b12 = BetaSpectrum("B12", 1000, 0, 15, 80, 3, 12)
     b12._load_data()
     b12._load_theo()
+    b12_data = b12.get_full_data()
+    # nll += cost.UnbinnedNLL(b12_data, b12._pdf)
     dataX = b12.get_dataX()
     dataY = b12.get_dataY()
     dataYe = b12.get_dataYe()
-    nll += cost.UnbinnedNLL(b12.m_data, b12._pdf)
-    # lsq = BetterLeastSquares(b12._pdf, dataX, dataY, dataYe)
+    lsq = cost.LeastSquares(dataX, dataY, dataYe, b12._pdf, verbose=1)
 
-    m = Minuit(nll, kB=5.7e-3, Ysct=1400, p0=91, p1=0.5, p2=0.2, E0=0.2, a=0.98, b=0.05, n=1.62)
+    csum = nll + lsq
+
+    m = Minuit(csum, kB=5.7e-3, Ysct=1400, p0=91, p1=0.5, p2=0.2, E0=0.2, a=0.98, b=0.05, n=1.62)
     # setting parameters ranges
     m.limits["kB"] = (5.0e-3, 9.0e-3)
     m.limits["Ysct"] = (1350, 1450)
@@ -62,5 +65,7 @@ def fitter():
     for gam in gamma_sources:
         gam._print()
         gam._plot()
+
+    b12._plot()
 
     return m.values, m._errors

@@ -145,4 +145,5 @@ def set_fitpar_value_indict(d):
 
 def _print():
     for item in _global_fitpar_dict.items():
-        print(item)
+        print(item, end=" ")
+    print("\n")
