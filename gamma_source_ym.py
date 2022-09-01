@@ -76,7 +76,7 @@ class gamma(object):
     def get_pred_sigma(self):
         return self.pred_sigma
 
-    @timebudget
+    #@timebudget
     #@profile
     def _calc(self):
         """

@@ -80,7 +80,7 @@ class BetaSpectrum:
     def get_full_data(self):
         return self.m_data
 
-    @timebudget
+    #@timebudget
     def ApplyResponse(self):
 
         Ysct = glb.get_fitpar_value("Ysct")
@@ -199,7 +199,7 @@ class BetaSpectrum:
                 m_cont[ilocbin] += prob * m_theo_content[i]
         return m_cont
 
-    @timebudget
+    #@timebudget
     def _pdf(self, x, kB, Ysct, p0, p1, p2, E0, a, b, n):
         """ Gaussian PDF for NPE distribution """
         glb.set_fitpar_value("kB", kB)

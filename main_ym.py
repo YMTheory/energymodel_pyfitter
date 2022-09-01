@@ -30,6 +30,7 @@ if __name__ == "__main__":
         gol_cuda.copy_quenchNL_to_device()
 
     gol.set_fit_gam_flag(True)
-    gol.set_fit_B12_flag(True)
+    gol.set_fit_gam_method("binned")
+    gol.set_fit_B12_flag(False)
 
     f.fitter()

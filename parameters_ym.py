@@ -22,6 +22,9 @@ _run_mode = "cpu"
 global _fit_gam_flag
 _fit_gam_flag = True
 
+global _fit_gam_method
+_fit_gam_method = "lsq"
+
 global _fit_B12_flag
 _fit_B12_flag = True
 
@@ -174,6 +177,15 @@ def get_server_name():
     """
     return _server_name
 
+
+def set_fit_gam_method(val):
+    assert (val == "unbin" or val == "binned"), "Wrong gamma fitting argument, options are unbin or binned."
+    global _fit_gam_method
+    _fit_gam_method = val
+
+
+def get_fit_gam_method():
+    return _fit_gam_method
 
 def set_fitpar_value_ingroup(keys, vals):
     for k, v in zip(keys, vals):
